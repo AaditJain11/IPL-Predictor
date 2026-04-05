@@ -308,15 +308,20 @@ div[data-baseweb="select"] > div {
 def load_data():
     import zipfile
 
-    with zipfile.ZipFile("matches.csv.zip", "r") as z:
-        matches_name = z.namelist()[0]
+    with zipfile.ZipFile("matches.zip", "r") as z:
         z.extractall(".")
-    with zipfile.ZipFile("deliveries.csv.zip", "r") as z:
-        deliveries_name = z.namelist()[0]
+        matches_name = [n for n in z.namelist() if n.endswith('.csv')][0]
+
+    with zipfile.ZipFile("deliveries.zip", "r") as z:
         z.extractall(".")
+        deliveries_name = [n for n in z.namelist() if n.endswith('.csv')][0]
 
     matches = pd.read_csv(matches_name)
     deliveries = pd.read_csv(deliveries_name)
+
+    # Safety check: swap if wrong file loaded
+    if 'date' not in matches.columns:
+        matches, deliveries = deliveries, matches
 
     matches['date'] = pd.to_datetime(matches['date'])
     matches['season'] = matches['season'].apply(lambda x: int(str(x)[:4]))
