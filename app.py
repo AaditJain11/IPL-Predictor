@@ -75,16 +75,23 @@ html, body, [class*="css"] {
 
 /* ── Stat Cards ── */
 .stats-row {
-    display: flex;
-    gap: 1rem;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
     margin-bottom: 2.5rem;
+}
+@media (max-width: 480px) {
+    .stats-row {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.6rem;
+    }
 }
 .stat-card {
     flex: 1;
     background: #16161d;
     border: 1px solid #2a2a35;
     border-radius: 14px;
-    padding: 1.4rem 1.6rem;
+    padding: 1rem 1.2rem;
     position: relative;
     overflow: hidden;
     transition: border-color 0.3s;
@@ -99,16 +106,16 @@ html, body, [class*="css"] {
 }
 .stat-num {
     font-family: 'DM Serif Display', serif;
-    font-size: 2rem;
+    font-size: clamp(1.2rem, 4vw, 2rem);
     color: #f5f0e8;
     line-height: 1;
     margin-bottom: 0.3rem;
 }
 .stat-label {
-    font-size: 0.75rem;
+    font-size: clamp(0.6rem, 2vw, 0.75rem);
     color: #6a6a7a;
     text-transform: uppercase;
-    letter-spacing: 1.5px;
+    letter-spacing: 1px;
     font-weight: 500;
 }
 
