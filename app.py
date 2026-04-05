@@ -306,11 +306,15 @@ div[data-baseweb="select"] > div {
 # ═══════════════════════════════════════════════════════════════
 @st.cache_data(show_spinner=False)
 def load_data():
-    matches_id = "1vNH0D7ogiHihRtndScfhXGYIKSh5Vrrm"
-    deliveries_id = "1PprZhkaY-D8Lf_Jpt_mG29wxIuptx4nT"
+    import gdown, os
 
-    matches = pd.read_csv(f"https://drive.google.com/uc?export=download&id={matches_id}")
-    deliveries = pd.read_csv(f"https://drive.google.com/uc?export=download&id={deliveries_id}")
+    if not os.path.exists("matches.csv"):
+        gdown.download(id="1vNH0D7ogiHihRtndScfhXGYIKSh5Vrrm", output="matches.csv", quiet=False)
+    if not os.path.exists("deliveries.csv"):
+        gdown.download(id="1PprZhkaY-D8Lf_Jpt_mG29wxIuptx4nT", output="deliveries.csv", quiet=False)
+
+    matches = pd.read_csv("matches.csv")
+    deliveries = pd.read_csv("deliveries.csv")
 
     matches['date'] = pd.to_datetime(matches['date'])
     matches['season'] = matches['season'].apply(lambda x: int(str(x)[:4]))
