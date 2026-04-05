@@ -309,12 +309,14 @@ def load_data():
     import zipfile
 
     with zipfile.ZipFile("matches.csv.zip", "r") as z:
+        matches_name = z.namelist()[0]
         z.extractall(".")
     with zipfile.ZipFile("deliveries.csv.zip", "r") as z:
+        deliveries_name = z.namelist()[0]
         z.extractall(".")
 
-    matches = pd.read_csv("matches.csv")
-    deliveries = pd.read_csv("deliveries.csv")
+    matches = pd.read_csv(matches_name)
+    deliveries = pd.read_csv(deliveries_name)
 
     matches['date'] = pd.to_datetime(matches['date'])
     matches['season'] = matches['season'].apply(lambda x: int(str(x)[:4]))
