@@ -306,16 +306,12 @@ div[data-baseweb="select"] > div {
 # ═══════════════════════════════════════════════════════════════
 @st.cache_data(show_spinner=False)
 def load_data():
-    import gdown
+    import zipfile
 
-    gdown.download(
-        url="https://drive.google.com/uc?id=1vNH0D7ogiHihRtndScfhXGYIKSh5Vrrm",
-        output="matches.csv", quiet=False, fuzzy=True
-    )
-    gdown.download(
-        url="https://drive.google.com/uc?id=1PprZhkaY-D8Lf_Jpt_mG29wxIuptx4nT",
-        output="deliveries.csv", quiet=False, fuzzy=True
-    )
+    with zipfile.ZipFile("matches.csv.zip", "r") as z:
+        z.extractall(".")
+    with zipfile.ZipFile("deliveries.csv.zip", "r") as z:
+        z.extractall(".")
 
     matches = pd.read_csv("matches.csv")
     deliveries = pd.read_csv("deliveries.csv")
