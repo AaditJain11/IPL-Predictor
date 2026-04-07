@@ -66,7 +66,7 @@ html, body, [class*="css"] {
     margin: 1.2rem auto 0;
 }
 .hero-tag {
-    font-size: 0.72rem;
+    font-size: clamp(0.82rem, 2.2vw, 0.72rem);
     font-weight: 500;
     letter-spacing: 4px;
     color: #3b82f6;
@@ -75,14 +75,14 @@ html, body, [class*="css"] {
 }
 .hero-title {
     font-family: 'DM Serif Display', serif;
-    font-size: clamp(2rem, 6vw, 3.2rem);
+    font-size: clamp(2.4rem, 6vw, 3.2rem);
     font-weight: 400;
     color: #f0e6d3;
     margin: 0;
     line-height: 1.1;
 }
 .hero-sub {
-    font-size: clamp(0.75rem, 2vw, 0.9rem);
+    font-size: clamp(0.92rem, 2vw, 0.9rem);
     color: #64748b;
     margin-top: 0.8rem;
     letter-spacing: 1px;
@@ -115,14 +115,14 @@ html, body, [class*="css"] {
 }
 .stat-num {
     font-family: 'DM Serif Display', serif;
-    font-size: clamp(1.3rem, 3vw, 2rem);
+    font-size: clamp(1.6rem, 3vw, 2rem);
     color: #f0e6d3;
     line-height: 1;
     margin-bottom: 0.3rem;
     word-break: break-word;
 }
 .stat-label {
-    font-size: 0.7rem;
+    font-size: clamp(0.75rem, 1.8vw, 0.82rem);
     color: #64748b;
     text-transform: uppercase;
     letter-spacing: 1.5px;
@@ -132,7 +132,7 @@ html, body, [class*="css"] {
 /* ── Section Titles ── */
 .sec-title {
     font-family: 'DM Serif Display', serif;
-    font-size: clamp(1.1rem, 3vw, 1.5rem);
+    font-size: clamp(1.3rem, 3vw, 1.5rem);
     color: #f0e6d3;
     margin: 1.5rem 0 1rem;
     display: flex;
@@ -160,7 +160,7 @@ html, body, [class*="css"] {
     background: transparent;
     color: #64748b;
     font-family: 'DM Sans', sans-serif;
-    font-size: clamp(0.7rem, 2vw, 0.85rem);
+    font-size: clamp(0.82rem, 2vw, 0.85rem);
     font-weight: 500;
     border-radius: 8px;
     padding: 7px 14px;
@@ -226,12 +226,12 @@ div[data-baseweb="select"] > div {
 }
 .predict-hero-title {
     font-family: 'DM Serif Display', serif;
-    font-size: clamp(1.5rem, 4vw, 2.2rem);
+    font-size: clamp(1.9rem, 4vw, 2.2rem);
     color: #f0e6d3;
     margin: 0.3rem 0;
 }
 .predict-hero-sub {
-    font-size: clamp(0.75rem, 2vw, 0.85rem);
+    font-size: clamp(0.9rem, 2vw, 0.85rem);
     color: #64748b;
     margin-top: 0.4rem;
 }
@@ -285,7 +285,7 @@ div[data-baseweb="select"] > div {
 }
 .result-team {
     font-family: 'DM Serif Display', serif;
-    font-size: clamp(1.6rem, 4vw, 2.6rem);
+    font-size: clamp(2rem, 4vw, 2.6rem);
     color: #3b82f6;
     margin: 0.3rem 0;
     text-shadow: 0 0 40px rgba(59,130,246,0.4);
@@ -346,7 +346,7 @@ div[data-baseweb="select"] > div {
 }
 .h2h-num {
     font-family: 'DM Serif Display', serif;
-    font-size: clamp(1.4rem, 3vw, 2rem);
+    font-size: clamp(1.7rem, 3vw, 2rem);
     color: #3b82f6;
     line-height: 1;
 }
@@ -677,13 +677,16 @@ with tab1:
         bat_data   = tt[tt['decision'] == 'bat'].set_index('season').reindex(seasons_sorted, fill_value=0)
         field_data = tt[tt['decision'] == 'field'].set_index('season').reindex(seasons_sorted, fill_value=0)
 
+        TOSS_BAT   = '#f59e0b'   # warm amber  — Bat First
+        TOSS_FIELD = '#a855f7'   # vivid violet — Field (Bowl)
+
         fig, ax = base_fig(6, 4.5)
-        ax.fill_between(seasons_sorted, bat_data['count'],   alpha=0.15, color=ACCENT)
-        ax.fill_between(seasons_sorted, field_data['count'], alpha=0.15, color=ACCENT2)
+        ax.fill_between(seasons_sorted, bat_data['count'],   alpha=0.18, color=TOSS_BAT)
+        ax.fill_between(seasons_sorted, field_data['count'], alpha=0.18, color=TOSS_FIELD)
         ax.plot(seasons_sorted, bat_data['count'],
-                marker='o', markersize=5, color=ACCENT,  linewidth=2.2, label='Bat First',    zorder=3)
+                marker='o', markersize=6, color=TOSS_BAT,   linewidth=2.5, label='Bat First',    zorder=3)
         ax.plot(seasons_sorted, field_data['count'],
-                marker='s', markersize=5, color=ACCENT2, linewidth=2.2, label='Field (Bowl)', zorder=3,
+                marker='D', markersize=5, color=TOSS_FIELD, linewidth=2.5, label='Field (Bowl)', zorder=3,
                 linestyle='--')
 
         # Annotate last data point for clarity
@@ -691,10 +694,10 @@ with tab1:
             last = seasons_sorted[-1]
             ax.annotate('Bat', xy=(last, bat_data.loc[last, 'count']),
                         xytext=(4, 2), textcoords='offset points',
-                        color=ACCENT, fontsize=8, fontweight='600')
+                        color=TOSS_BAT, fontsize=9, fontweight='700')
             ax.annotate('Field', xy=(last, field_data.loc[last, 'count']),
-                        xytext=(4, -10), textcoords='offset points',
-                        color=ACCENT2, fontsize=8, fontweight='600')
+                        xytext=(4, -12), textcoords='offset points',
+                        color=TOSS_FIELD, fontsize=9, fontweight='700')
 
         ax.set_title('Toss Decision Over Seasons', color='#c0c0d0', fontsize=11, pad=12)
         ax.set_xlabel('Season')
@@ -703,8 +706,8 @@ with tab1:
             facecolor=CARD, edgecolor=LINE, labelcolor='#c0c0d0',
             fontsize=9, loc='upper left',
             handles=[
-                mpatches.Patch(color=ACCENT,  label='Bat First'),
-                mpatches.Patch(color=ACCENT2, label='Field (Bowl)'),
+                mpatches.Patch(color=TOSS_BAT,   label='Bat First'),
+                mpatches.Patch(color=TOSS_FIELD,  label='Field (Bowl)'),
             ]
         )
         ax.xaxis.set_major_locator(ticker.MaxNLocator(integer=True))
@@ -724,7 +727,7 @@ with tab1:
         ).reset_index()
         tdw.columns = ['decision', 'win_pct']
         tdw['label'] = tdw['decision'].map({'bat': 'Bat First', 'field': 'Field (Bowl)'})
-        tdw['color'] = tdw['decision'].map({'bat': ACCENT, 'field': ACCENT2})
+        tdw['color'] = tdw['decision'].map({'bat': '#f59e0b', 'field': '#a855f7'})
 
         fig, ax = base_fig(6, 4.5)
         bars = ax.bar(tdw['label'], tdw['win_pct'],
@@ -741,8 +744,8 @@ with tab1:
         ax.set_ylim(0, 75)
         ax.tick_params(axis='x', colors='#94a3b8', labelsize=10)
         patches = [
-            mpatches.Patch(color=ACCENT,  label='Bat First'),
-            mpatches.Patch(color=ACCENT2, label='Field (Bowl)'),
+            mpatches.Patch(color='#f59e0b', label='Bat First'),
+            mpatches.Patch(color='#a855f7', label='Field (Bowl)'),
         ]
         ax.legend(handles=patches, facecolor=CARD, edgecolor=LINE,
                   labelcolor='#c0c0d0', fontsize=9)
