@@ -19,15 +19,34 @@ st.set_page_config(
 # ─── Colour Palette ────────────────────────────────────────────
 BG      = '#080c14'
 CARD    = '#0e1420'
-ACCENT  = '#3b82f6'
-ACCENT2 = '#06b6d4'
-CREAM   = '#f0e6d3'
+ACCENT  = '#3b82f6'   # electric blue
+ACCENT2 = '#f59e0b'   # amber (warm contrast to blue)
 RED     = '#ef4444'
 GREEN   = '#10b981'
+ORANGE  = '#f97316'
+PURPLE  = '#a855f7'
 MUTED   = '#64748b'
 LINE    = '#1e293b'
 
-# ─── Premium CSS ───────────────────────────────────────────────
+# Toss colours — amber vs violet, fully contrasting
+TOSS_BAT   = '#f59e0b'
+TOSS_FIELD = '#a855f7'
+
+# ─── Current IPL franchises only — no defunct teams in H2H ────
+ACTIVE_TEAMS = {
+    'Chennai Super Kings',
+    'Delhi Capitals',
+    'Gujarat Titans',
+    'Kolkata Knight Riders',
+    'Lucknow Super Giants',
+    'Mumbai Indians',
+    'Punjab Kings',
+    'Rajasthan Royals',
+    'Royal Challengers Bengaluru',
+    'Sunrisers Hyderabad',
+}
+
+# ─── CSS ───────────────────────────────────────────────────────
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap');
@@ -41,7 +60,6 @@ html, body, [class*="css"] {
 }
 .stApp { background: #080c14; }
 
-/* ── Responsive containers ── */
 .block-container {
     max-width: 1200px !important;
     padding: 1rem 1rem 3rem !important;
@@ -50,7 +68,6 @@ html, body, [class*="css"] {
     .block-container { padding: 0.5rem 0.5rem 2rem !important; }
 }
 
-/* ── Hero ── */
 .hero {
     padding: 2.5rem 1rem 1.5rem;
     text-align: center;
@@ -60,13 +77,12 @@ html, body, [class*="css"] {
 .hero::after {
     content: '';
     display: block;
-    width: 80px;
-    height: 2px;
+    width: 80px; height: 2px;
     background: linear-gradient(90deg, transparent, #3b82f6, transparent);
     margin: 1.2rem auto 0;
 }
 .hero-tag {
-    font-size: clamp(0.82rem, 2.2vw, 0.72rem);
+    font-size: clamp(0.82rem, 2.2vw, 0.9rem);
     font-weight: 500;
     letter-spacing: 4px;
     color: #3b82f6;
@@ -82,13 +98,12 @@ html, body, [class*="css"] {
     line-height: 1.1;
 }
 .hero-sub {
-    font-size: clamp(0.92rem, 2vw, 0.9rem);
+    font-size: clamp(0.92rem, 2vw, 1rem);
     color: #64748b;
     margin-top: 0.8rem;
     letter-spacing: 1px;
 }
 
-/* ── Stat Cards ── */
 .stats-row {
     display: flex;
     flex-wrap: wrap;
@@ -129,7 +144,6 @@ html, body, [class*="css"] {
     font-weight: 500;
 }
 
-/* ── Section Titles ── */
 .sec-title {
     font-family: 'DM Serif Display', serif;
     font-size: clamp(1.3rem, 3vw, 1.5rem);
@@ -146,7 +160,6 @@ html, body, [class*="css"] {
     background: linear-gradient(90deg, #1e293b, transparent);
 }
 
-/* ── Tabs ── */
 .stTabs [data-baseweb="tab-list"] {
     background: #0e1420;
     border-radius: 12px;
@@ -174,10 +187,9 @@ html, body, [class*="css"] {
     border-bottom: none !important;
 }
 
-/* ── Selectbox ── */
 .stSelectbox label {
     color: #64748b !important;
-    font-size: 0.78rem !important;
+    font-size: 0.82rem !important;
     font-weight: 500 !important;
     letter-spacing: 1px !important;
     text-transform: uppercase !important;
@@ -189,7 +201,6 @@ div[data-baseweb="select"] > div {
     color: #e2e8f0 !important;
 }
 
-/* ── Predict Hero Banner ── */
 .predict-hero {
     background: linear-gradient(135deg, #0e1420 0%, #0f172a 50%, #0e1420 100%);
     border: 1px solid #1e40af;
@@ -205,20 +216,19 @@ div[data-baseweb="select"] > div {
     position: absolute;
     top: 0; left: 0; right: 0;
     height: 3px;
-    background: linear-gradient(90deg, transparent, #3b82f6, #06b6d4, transparent);
+    background: linear-gradient(90deg, transparent, #3b82f6, #a855f7, transparent);
 }
 .predict-hero::after {
     content: '🏏';
     position: absolute;
     font-size: 8rem;
     opacity: 0.04;
-    top: 50%;
-    left: 50%;
+    top: 50%; left: 50%;
     transform: translate(-50%, -50%);
     pointer-events: none;
 }
 .predict-hero-tag {
-    font-size: 0.7rem;
+    font-size: clamp(0.72rem, 2vw, 0.75rem);
     letter-spacing: 4px;
     color: #3b82f6;
     text-transform: uppercase;
@@ -231,12 +241,11 @@ div[data-baseweb="select"] > div {
     margin: 0.3rem 0;
 }
 .predict-hero-sub {
-    font-size: clamp(0.9rem, 2vw, 0.85rem);
+    font-size: clamp(0.9rem, 2vw, 0.95rem);
     color: #64748b;
     margin-top: 0.4rem;
 }
 
-/* ── Predict Button ── */
 .stButton > button {
     background: linear-gradient(135deg, #1d4ed8, #3b82f6);
     color: #ffffff;
@@ -258,7 +267,6 @@ div[data-baseweb="select"] > div {
     box-shadow: 0 8px 30px rgba(59,130,246,0.45);
 }
 
-/* ── Prediction Result ── */
 .result-wrap {
     background: linear-gradient(135deg, #0e1420, #0f172a);
     border: 1px solid #1e40af;
@@ -274,10 +282,10 @@ div[data-baseweb="select"] > div {
     position: absolute;
     top: 0; left: 0; right: 0;
     height: 3px;
-    background: linear-gradient(90deg, transparent, #3b82f6, #06b6d4, transparent);
+    background: linear-gradient(90deg, transparent, #3b82f6, #a855f7, transparent);
 }
 .result-label {
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     letter-spacing: 3px;
     color: #64748b;
     text-transform: uppercase;
@@ -291,7 +299,7 @@ div[data-baseweb="select"] > div {
     text-shadow: 0 0 40px rgba(59,130,246,0.4);
 }
 .result-conf {
-    font-size: 0.85rem;
+    font-size: clamp(0.85rem, 2vw, 0.9rem);
     color: #64748b;
     margin-top: 0.4rem;
 }
@@ -305,38 +313,35 @@ div[data-baseweb="select"] > div {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 0.82rem;
+    font-size: clamp(0.82rem, 2vw, 0.9rem);
     margin-bottom: 0.5rem;
     color: #94a3b8;
 }
 .prob-bar-outer {
-    width: 100%;
-    height: 8px;
+    width: 100%; height: 10px;
     background: #1e293b;
-    border-radius: 4px;
+    border-radius: 5px;
     overflow: hidden;
     margin-top: 0.3rem;
 }
 .prob-bar-inner {
     height: 100%;
     background: linear-gradient(90deg, #1d4ed8, #3b82f6);
-    border-radius: 4px;
+    border-radius: 5px;
 }
 
-/* ── Disclaimer ── */
 .disc {
     background: #0e1420;
     border: 1px solid #1e293b;
     border-left: 3px solid #3b82f6;
     border-radius: 10px;
     padding: 1rem 1.2rem;
-    font-size: 0.8rem;
+    font-size: clamp(0.8rem, 2vw, 0.85rem);
     color: #64748b;
     line-height: 1.6;
     margin-bottom: 1.5rem;
 }
 
-/* ── H2H Card ── */
 .h2h-card {
     background: #0e1420;
     border: 1px solid #1e293b;
@@ -351,7 +356,7 @@ div[data-baseweb="select"] > div {
     line-height: 1;
 }
 .h2h-lbl {
-    font-size: 0.7rem;
+    font-size: clamp(0.72rem, 1.8vw, 0.8rem);
     color: #64748b;
     text-transform: uppercase;
     letter-spacing: 1.5px;
@@ -359,11 +364,9 @@ div[data-baseweb="select"] > div {
     word-break: break-word;
 }
 
-/* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: #080c14; }
 ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
-
 #MainMenu, footer, header { visibility: hidden; }
 </style>
 """, unsafe_allow_html=True)
@@ -384,30 +387,30 @@ def load_data():
         z.extractall(".")
         deliveries_name = [n for n in z.namelist() if n.endswith('.csv')][0]
 
-    matches = pd.read_csv(matches_name)
+    matches    = pd.read_csv(matches_name)
     deliveries = pd.read_csv(deliveries_name)
 
     if 'date' not in matches.columns:
         matches, deliveries = deliveries, matches
 
-    matches['date'] = pd.to_datetime(matches['date'])
+    matches['date']   = pd.to_datetime(matches['date'])
     matches['season'] = matches['season'].apply(lambda x: int(str(x)[:4]))
 
     team_map = {
-        'Delhi Daredevils': 'Delhi Capitals',
-        'Kings XI Punjab': 'Punjab Kings',
+        'Delhi Daredevils':            'Delhi Capitals',
+        'Kings XI Punjab':             'Punjab Kings',
         'Royal Challengers Bangalore': 'Royal Challengers Bengaluru',
-        'Rising Pune Supergiant': 'Rising Pune Supergiants',
+        'Rising Pune Supergiant':      'Rising Pune Supergiants',
     }
     for col in ['team1', 'team2', 'toss_winner', 'winner']:
         matches[col] = matches[col].replace(team_map)
     for col in ['batting_team', 'bowling_team']:
         deliveries[col] = deliveries[col].replace(team_map)
 
-    matches['city'] = matches['city'].fillna(
+    matches['city']            = matches['city'].fillna(
         matches['venue'].str.split(',').str[-1].str.strip()
     )
-    matches['winner'] = matches['winner'].fillna('No Result')
+    matches['winner']          = matches['winner'].fillna('No Result')
     matches['player_of_match'] = matches['player_of_match'].fillna('No Award')
     for c in ['extras_type', 'player_dismissed', 'dismissal_kind', 'fielder']:
         deliveries[c] = deliveries[c].fillna('None')
@@ -420,7 +423,7 @@ def load_data():
 def train_model(_matches):
     encoders = {}
     cols = ['city', 'team1', 'team2', 'toss_winner', 'toss_decision']
-    raw = _matches[
+    raw  = _matches[
         ['season', 'city', 'team1', 'team2', 'toss_winner', 'toss_decision', 'winner']
     ].copy().dropna()
     raw['result'] = (raw['winner'] == raw['team1']).astype(int)
@@ -436,19 +439,19 @@ def train_model(_matches):
     return m, encoders
 
 
-# ─── Plot helpers ──────────────────────────────────────────────
+# ─── Base figure — 12pt labels, bright text, readable on mobile ──
 def base_fig(w=10, h=4.5):
     fig, ax = plt.subplots(figsize=(w, h))
     fig.patch.set_facecolor(BG)
     ax.set_facecolor(CARD)
-    ax.tick_params(colors='#94a3b8', labelsize=9)
-    ax.xaxis.label.set_color(MUTED)
-    ax.yaxis.label.set_color(MUTED)
-    ax.xaxis.label.set_fontsize(9)
-    ax.yaxis.label.set_fontsize(9)
+    ax.tick_params(colors='#cbd5e1', labelsize=12)
+    ax.xaxis.label.set_color('#94a3b8')
+    ax.yaxis.label.set_color('#94a3b8')
+    ax.xaxis.label.set_fontsize(12)
+    ax.yaxis.label.set_fontsize(12)
     for sp in ax.spines.values():
         sp.set_edgecolor(LINE)
-    ax.grid(axis='y', color=LINE, linewidth=0.5, alpha=0.6)
+    ax.grid(axis='y', color=LINE, linewidth=0.6, alpha=0.7)
     ax.set_axisbelow(True)
     return fig, ax
 
@@ -458,7 +461,7 @@ def base_fig(w=10, h=4.5):
 # ═══════════════════════════════════════════════════════════════
 with st.spinner('Loading IPL data…'):
     matches, deliveries, df = load_data()
-    model, encoders = train_model(matches)
+    model, encoders         = train_model(matches)
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -472,7 +475,6 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# ─── Top stats ─────────────────────────────────────────────────
 total_runs  = int(deliveries['batsman_runs'].sum())
 top_scorer  = deliveries.groupby('batter')['batsman_runs'].sum().idxmax()
 total_sixes = int((deliveries['batsman_runs'] == 6).sum())
@@ -496,7 +498,7 @@ st.markdown(f"""
         <div class="stat-label">Total Sixes</div>
     </div>
     <div class="stat-card">
-        <div class="stat-num" style="font-size:clamp(0.9rem,2vw,1.2rem);padding-top:0.4rem">{top_scorer}</div>
+        <div class="stat-num" style="font-size:clamp(1rem,2.2vw,1.2rem);padding-top:0.4rem">{top_scorer}</div>
         <div class="stat-label">All-time Top Scorer</div>
     </div>
 </div>
@@ -546,13 +548,11 @@ with tab5:
                 team_played = pd.concat([matches['team1'], matches['team2']]).value_counts()
                 win_pct     = (team_wins / team_played * 100).fillna(0)
 
-                t1_win_pct = win_pct.get(t1_sel, 50)
-                t2_win_pct = win_pct.get(t2_sel, 50)
-
-                if t1_win_pct >= t2_win_pct:
-                    model_team1, model_team2 = t1_sel, t2_sel
-                else:
-                    model_team1, model_team2 = t2_sel, t1_sel
+                t1_win_pct  = win_pct.get(t1_sel, 50)
+                t2_win_pct  = win_pct.get(t2_sel, 50)
+                model_team1, model_team2 = (
+                    (t1_sel, t2_sel) if t1_win_pct >= t2_win_pct else (t2_sel, t1_sel)
+                )
 
                 def make_input(toss_winner):
                     return pd.DataFrame([{
@@ -567,13 +567,9 @@ with tab5:
                 p1 = model.predict_proba(make_input(model_team1))[0]
                 p2 = model.predict_proba(make_input(model_team2))[0]
 
-                avg_model_team1 = (p1[1] + p2[1]) / 2
-                avg_model_team2 = (p1[0] + p2[0]) / 2
-
-                if model_team1 == t1_sel:
-                    avg1, avg2 = avg_model_team1, avg_model_team2
-                else:
-                    avg1, avg2 = avg_model_team2, avg_model_team1
+                avg_mt1 = (p1[1] + p2[1]) / 2
+                avg_mt2 = (p1[0] + p2[0]) / 2
+                avg1, avg2 = (avg_mt1, avg_mt2) if model_team1 == t1_sel else (avg_mt2, avg_mt1)
 
                 winner = t1_sel if avg1 > avg2 else t2_sel
                 conf   = max(avg1, avg2) * 100
@@ -602,11 +598,11 @@ with tab5:
                             <div class="prob-bar-inner" style="width:{pct1}%"></div>
                         </div>
                         <div class="prob-row" style="margin-top:0.8rem">
-                            <span style="color:#06b6d4;font-weight:600">{t2_sel}</span>
+                            <span style="color:#f59e0b;font-weight:600">{t2_sel}</span>
                             <span style="color:#f0e6d3;font-weight:600">{pct2}%</span>
                         </div>
                         <div class="prob-bar-outer">
-                            <div class="prob-bar-inner" style="width:{pct2}%; background: linear-gradient(90deg,#0891b2,#06b6d4)"></div>
+                            <div class="prob-bar-inner" style="width:{pct2}%; background: linear-gradient(90deg,#b45309,#f59e0b)"></div>
                         </div>
                     </div>
                 </div>
@@ -621,7 +617,7 @@ with tab5:
                     with c2:
                         st.markdown(f'<div class="h2h-card"><div class="h2h-num" style="color:#3b82f6">{h2h_w1}</div><div class="h2h-lbl">{t1_sel}</div></div>', unsafe_allow_html=True)
                     with c3:
-                        st.markdown(f'<div class="h2h-card"><div class="h2h-num" style="color:#06b6d4">{h2h_w2}</div><div class="h2h-lbl">{t2_sel}</div></div>', unsafe_allow_html=True)
+                        st.markdown(f'<div class="h2h-card"><div class="h2h-num" style="color:#f59e0b">{h2h_w2}</div><div class="h2h-lbl">{t2_sel}</div></div>', unsafe_allow_html=True)
 
             except Exception as e:
                 st.error(f"Prediction error: {e}")
@@ -640,24 +636,23 @@ with tab5:
 # ══════════════════════
 with tab1:
 
-    # ── Matches Per Season ──
     st.markdown('<div class="sec-title">Matches Per Season</div>', unsafe_allow_html=True)
     mps = matches.groupby('season')['id'].count().reset_index()
     mps.columns = ['season', 'count']
     mps['season'] = mps['season'].astype(int)
 
-    fig, ax = base_fig(10, 4)
-    bars = ax.bar(mps['season'], mps['count'], color=ACCENT, alpha=0.85, width=0.6, zorder=3)
+    fig, ax = base_fig(10, 4.5)
+    bars = ax.bar(mps['season'], mps['count'], color=ACCENT, alpha=0.9, width=0.6, zorder=3)
     for bar in bars:
         ax.text(
             bar.get_x() + bar.get_width() / 2,
-            bar.get_height() + 0.3,
+            bar.get_height() + 0.4,
             str(int(bar.get_height())),
-            ha='center', color='#94a3b8', fontsize=8
+            ha='center', color='#f0e6d3', fontsize=11, fontweight='600'
         )
     ax.set_xlabel('Season')
     ax.set_ylabel('Matches')
-    ax.set_title('Number of Matches Per Season', color='#c0c0d0', fontsize=11, pad=12)
+    ax.set_title('Number of Matches Per Season', color='#e2e8f0', fontsize=13, pad=14)
     ax.set_xticks(mps['season'])
     ax.set_xticklabels(mps['season'].astype(int), rotation=45, ha='right')
     plt.tight_layout()
@@ -669,42 +664,35 @@ with tab1:
     col1, col2 = st.columns(2)
 
     with col1:
-        # ── FIX: Toss Decision Over Seasons — clearly differentiated bat vs field ──
         tt = matches.groupby(['season', 'toss_decision'])['id'].count().reset_index()
         tt.columns = ['season', 'decision', 'count']
-
         seasons_sorted = sorted(tt['season'].unique())
         bat_data   = tt[tt['decision'] == 'bat'].set_index('season').reindex(seasons_sorted, fill_value=0)
         field_data = tt[tt['decision'] == 'field'].set_index('season').reindex(seasons_sorted, fill_value=0)
 
-        TOSS_BAT   = '#f59e0b'   # warm amber  — Bat First
-        TOSS_FIELD = '#a855f7'   # vivid violet — Field (Bowl)
-
-        fig, ax = base_fig(6, 4.5)
+        fig, ax = base_fig(6, 4.8)
         ax.fill_between(seasons_sorted, bat_data['count'],   alpha=0.18, color=TOSS_BAT)
         ax.fill_between(seasons_sorted, field_data['count'], alpha=0.18, color=TOSS_FIELD)
         ax.plot(seasons_sorted, bat_data['count'],
-                marker='o', markersize=6, color=TOSS_BAT,   linewidth=2.5, label='Bat First',    zorder=3)
+                marker='o', markersize=7, color=TOSS_BAT,   linewidth=2.5,
+                label='Bat First', zorder=3)
         ax.plot(seasons_sorted, field_data['count'],
-                marker='D', markersize=5, color=TOSS_FIELD, linewidth=2.5, label='Field (Bowl)', zorder=3,
-                linestyle='--')
-
-        # Annotate last data point for clarity
-        if len(bat_data) and len(field_data):
+                marker='D', markersize=6, color=TOSS_FIELD, linewidth=2.5,
+                label='Field (Bowl)', zorder=3, linestyle='--')
+        if seasons_sorted:
             last = seasons_sorted[-1]
             ax.annotate('Bat', xy=(last, bat_data.loc[last, 'count']),
-                        xytext=(4, 2), textcoords='offset points',
-                        color=TOSS_BAT, fontsize=9, fontweight='700')
+                        xytext=(5, 3), textcoords='offset points',
+                        color=TOSS_BAT, fontsize=12, fontweight='700')
             ax.annotate('Field', xy=(last, field_data.loc[last, 'count']),
-                        xytext=(4, -12), textcoords='offset points',
-                        color=TOSS_FIELD, fontsize=9, fontweight='700')
-
-        ax.set_title('Toss Decision Over Seasons', color='#c0c0d0', fontsize=11, pad=12)
+                        xytext=(5, -15), textcoords='offset points',
+                        color=TOSS_FIELD, fontsize=12, fontweight='700')
+        ax.set_title('Toss Decision Over Seasons', color='#e2e8f0', fontsize=13, pad=14)
         ax.set_xlabel('Season')
-        ax.set_ylabel('Number of Teams')
+        ax.set_ylabel('Teams Choosing')
         ax.legend(
-            facecolor=CARD, edgecolor=LINE, labelcolor='#c0c0d0',
-            fontsize=9, loc='upper left',
+            facecolor=CARD, edgecolor=LINE, labelcolor='#e2e8f0', fontsize=11,
+            loc='upper left',
             handles=[
                 mpatches.Patch(color=TOSS_BAT,   label='Bat First'),
                 mpatches.Patch(color=TOSS_FIELD,  label='Field (Bowl)'),
@@ -717,7 +705,6 @@ with tab1:
         plt.close()
 
     with col2:
-        # ── Win Rate by Toss Decision ──
         m2 = matches.copy()
         m2['toss_won_match'] = m2['toss_winner'] == m2['winner']
         tdw = (
@@ -727,28 +714,28 @@ with tab1:
         ).reset_index()
         tdw.columns = ['decision', 'win_pct']
         tdw['label'] = tdw['decision'].map({'bat': 'Bat First', 'field': 'Field (Bowl)'})
-        tdw['color'] = tdw['decision'].map({'bat': '#f59e0b', 'field': '#a855f7'})
+        tdw['color'] = tdw['decision'].map({'bat': TOSS_BAT, 'field': TOSS_FIELD})
 
-        fig, ax = base_fig(6, 4.5)
+        fig, ax = base_fig(6, 4.8)
         bars = ax.bar(tdw['label'], tdw['win_pct'],
-                      color=tdw['color'].tolist(), width=0.4, zorder=3, alpha=0.9)
+                      color=tdw['color'].tolist(), width=0.45, zorder=3, alpha=0.92)
         for bar, (_, row) in zip(bars, tdw.iterrows()):
             ax.text(
                 bar.get_x() + bar.get_width() / 2,
-                bar.get_height() + 0.8,
+                bar.get_height() + 1.2,
                 f'{row["win_pct"]:.1f}%',
-                ha='center', color='#e2e8f0', fontsize=12, fontweight='600'
+                ha='center', color='#f0e6d3', fontsize=15, fontweight='700'
             )
-        ax.set_title('Win Rate When Winning Toss', color='#c0c0d0', fontsize=11, pad=12)
+        ax.set_title('Win Rate When Winning Toss', color='#e2e8f0', fontsize=13, pad=14)
         ax.set_ylabel('Win %')
-        ax.set_ylim(0, 75)
-        ax.tick_params(axis='x', colors='#94a3b8', labelsize=10)
+        ax.set_ylim(0, 80)
+        ax.tick_params(axis='x', colors='#cbd5e1', labelsize=12)
         patches = [
-            mpatches.Patch(color='#f59e0b', label='Bat First'),
-            mpatches.Patch(color='#a855f7', label='Field (Bowl)'),
+            mpatches.Patch(color=TOSS_BAT,   label='Bat First'),
+            mpatches.Patch(color=TOSS_FIELD,  label='Field (Bowl)'),
         ]
         ax.legend(handles=patches, facecolor=CARD, edgecolor=LINE,
-                  labelcolor='#c0c0d0', fontsize=9)
+                  labelcolor='#e2e8f0', fontsize=11)
         plt.tight_layout()
         st.pyplot(fig)
         plt.close()
@@ -763,31 +750,32 @@ with tab1:
     ts['win_pct'] = (ts['wins'] / ts['played'] * 100).round(1)
     ts = ts[ts['played'] >= 10].sort_values('win_pct')
 
-    fig, ax = base_fig(10, max(5, len(ts) * 0.45))
+    # Blue > 55%, Amber 45–55%, Red < 45% — three clearly distinct colours
     bar_colors = [
         ACCENT if v >= 55 else ACCENT2 if v >= 45 else RED
         for v in ts['win_pct']
     ]
+    fig, ax = base_fig(10, max(5.5, len(ts) * 0.48))
     bars = ax.barh(ts['team'], ts['win_pct'],
-                   color=bar_colors, alpha=0.85, height=0.6, zorder=3)
+                   color=bar_colors, alpha=0.9, height=0.65, zorder=3)
     for bar in bars:
         ax.text(
-            bar.get_width() + 0.5,
+            bar.get_width() + 0.6,
             bar.get_y() + bar.get_height() / 2,
             f'{bar.get_width():.1f}%',
-            va='center', color='#8a8a9a', fontsize=8
+            va='center', color='#f0e6d3', fontsize=11, fontweight='600'
         )
     ax.set_title('All-time Win Percentage by Team (min 10 matches)',
-                 color='#c0c0d0', fontsize=11, pad=12)
+                 color='#e2e8f0', fontsize=13, pad=14)
     ax.set_xlabel('Win %')
-    ax.set_xlim(0, 80)
+    ax.set_xlim(0, 85)
     patches = [
         mpatches.Patch(color=ACCENT,  label='> 55%'),
         mpatches.Patch(color=ACCENT2, label='45–55%'),
         mpatches.Patch(color=RED,     label='< 45%'),
     ]
     ax.legend(handles=patches, facecolor=CARD, edgecolor=LINE,
-              labelcolor='#c0c0d0', fontsize=9)
+              labelcolor='#e2e8f0', fontsize=11)
     plt.tight_layout()
     st.pyplot(fig)
     plt.close()
@@ -798,13 +786,18 @@ with tab1:
     if len(so) > 0:
         so_teams = pd.concat([so['team1'], so['team2']]).value_counts().reset_index()
         so_teams.columns = ['team', 'count']
-        fig, ax = base_fig(10, 3.5)
+        fig, ax = base_fig(10, 4)
         ax.bar(so_teams['team'], so_teams['count'],
-               color=ACCENT, alpha=0.85, width=0.6, zorder=3)
-        ax.set_title(
-            f'Super Over Involvement by Team  ({len(so)} total)',
-            color='#c0c0d0', fontsize=11, pad=12
-        )
+               color=ORANGE, alpha=0.9, width=0.6, zorder=3)
+        for bar in ax.patches:
+            ax.text(
+                bar.get_x() + bar.get_width() / 2,
+                bar.get_height() + 0.05,
+                str(int(bar.get_height())),
+                ha='center', color='#f0e6d3', fontsize=11, fontweight='600'
+            )
+        ax.set_title(f'Super Over Involvement by Team  ({len(so)} total)',
+                     color='#e2e8f0', fontsize=13, pad=14)
         ax.set_ylabel('Times Involved')
         plt.xticks(rotation=45, ha='right')
         plt.tight_layout()
@@ -826,17 +819,17 @@ with tab2:
         ts_bat = deliveries.groupby('batter')['batsman_runs'].sum().reset_index()
         ts_bat.columns = ['batter', 'runs']
         ts_bat = ts_bat.sort_values('runs', ascending=True).tail(15)
-        fig, ax = base_fig(6, 6)
+        fig, ax = base_fig(6, 6.5)
         ax.barh(ts_bat['batter'], ts_bat['runs'],
-                color=ACCENT, alpha=0.85, height=0.6, zorder=3)
+                color=ACCENT, alpha=0.9, height=0.65, zorder=3)
         for bar in ax.patches:
             ax.text(
-                bar.get_width() + 20,
+                bar.get_width() + 30,
                 bar.get_y() + bar.get_height() / 2,
                 f'{int(bar.get_width()):,}',
-                va='center', color='#8a8a9a', fontsize=7
+                va='center', color='#f0e6d3', fontsize=10, fontweight='600'
             )
-        ax.set_title('Top 15 Run Scorers', color='#c0c0d0', fontsize=11, pad=12)
+        ax.set_title('Top 15 Run Scorers', color='#e2e8f0', fontsize=13, pad=14)
         ax.set_xlabel('Total Runs')
         plt.tight_layout()
         st.pyplot(fig)
@@ -847,17 +840,18 @@ with tab2:
         sx = deliveries[deliveries['batsman_runs'] == 6].groupby('batter').size().reset_index()
         sx.columns = ['batter', 'sixes']
         sx = sx.sort_values('sixes', ascending=True).tail(12)
-        fig, ax = base_fig(6, 6)
+        fig, ax = base_fig(6, 6.5)
+        # RED for sixes — clearly distinct from blue of run scorers
         ax.barh(sx['batter'], sx['sixes'],
-                color=ACCENT2, alpha=0.85, height=0.6, zorder=3)
+                color=RED, alpha=0.9, height=0.65, zorder=3)
         for bar in ax.patches:
             ax.text(
                 bar.get_width() + 1,
                 bar.get_y() + bar.get_height() / 2,
                 str(int(bar.get_width())),
-                va='center', color='#8a8a9a', fontsize=7
+                va='center', color='#f0e6d3', fontsize=10, fontweight='600'
             )
-        ax.set_title('Top 12 Six Hitters', color='#c0c0d0', fontsize=11, pad=12)
+        ax.set_title('Top 12 Six Hitters', color='#e2e8f0', fontsize=13, pad=14)
         ax.set_xlabel('Sixes')
         plt.tight_layout()
         st.pyplot(fig)
@@ -880,45 +874,42 @@ with tab2:
     ph_b  = d_phase.groupby('phase')['ball'].count()
     ph_rr = (ph_r / ph_b * 6).round(2).reset_index()
     ph_rr.columns = ['phase', 'run_rate']
-
     order_map = {
         'Powerplay\n(Overs 1–6)': 0,
-        'Middle\n(Overs 7–15)': 1,
-        'Death\n(Overs 16–20)': 2
+        'Middle\n(Overs 7–15)':   1,
+        'Death\n(Overs 16–20)':   2,
     }
     ph_rr['order'] = ph_rr['phase'].map(order_map)
     ph_rr = ph_rr.sort_values('order')
 
+    # Blue, Amber, Red — three distinct hues
     c_map = {
         'Powerplay\n(Overs 1–6)': ACCENT,
-        'Middle\n(Overs 7–15)': ACCENT2,
-        'Death\n(Overs 16–20)': RED
+        'Middle\n(Overs 7–15)':   ACCENT2,
+        'Death\n(Overs 16–20)':   RED,
     }
 
-    fig, ax = base_fig(10, 4.5)
-    bar_list = []
+    fig, ax = base_fig(10, 5)
     for _, row in ph_rr.iterrows():
-        b = ax.bar(row['phase'], row['run_rate'],
-                   color=c_map.get(row['phase'], ACCENT),
-                   alpha=0.85, width=0.4, zorder=3)
-        bar_list.append(b)
+        ax.bar(row['phase'], row['run_rate'],
+               color=c_map.get(row['phase'], ACCENT),
+               alpha=0.9, width=0.42, zorder=3)
         ax.text(
-            row['phase'], row['run_rate'] + 0.06,
+            row['phase'], row['run_rate'] + 0.07,
             f"{row['run_rate']:.2f}",
-            ha='center', color='#e2e8f0', fontsize=13, fontweight='600'
+            ha='center', color='#f0e6d3', fontsize=15, fontweight='700'
         )
-
-    ax.set_title('Run Rate by Match Phase', color='#c0c0d0', fontsize=11, pad=12)
+    ax.set_title('Run Rate by Match Phase', color='#e2e8f0', fontsize=13, pad=14)
     ax.set_ylabel('Run Rate (per over)')
-    ax.set_ylim(0, max(ph_rr['run_rate']) * 1.25)
-    ax.tick_params(axis='x', labelsize=9)
+    ax.set_ylim(0, max(ph_rr['run_rate']) * 1.3)
+    ax.tick_params(axis='x', labelsize=12)
     patches = [
         mpatches.Patch(color=ACCENT,  label='Powerplay (1–6)'),
         mpatches.Patch(color=ACCENT2, label='Middle (7–15)'),
         mpatches.Patch(color=RED,     label='Death (16–20)'),
     ]
     ax.legend(handles=patches, facecolor=CARD, edgecolor=LINE,
-              labelcolor='#c0c0d0', fontsize=9)
+              labelcolor='#e2e8f0', fontsize=11)
     plt.tight_layout()
     st.pyplot(fig)
     plt.close()
@@ -930,18 +921,19 @@ with tab2:
     df_trend['is_six']  = df_trend['batsman_runs'] == 6
     bps = df_trend.groupby('season')[['is_four', 'is_six']].sum().reset_index()
 
-    fig, ax = base_fig(10, 4)
+    fig, ax = base_fig(10, 4.5)
+    # Blue for fours, Red for sixes — maximum contrast
     ax.plot(bps['season'], bps['is_four'],
-            marker='o', markersize=4, color=ACCENT,  linewidth=2, label='Fours', zorder=3)
+            marker='o', markersize=6, color=ACCENT, linewidth=2.5, label='Fours', zorder=3)
     ax.plot(bps['season'], bps['is_six'],
-            marker='s', markersize=4, color=ACCENT2, linewidth=2, label='Sixes',
+            marker='s', markersize=6, color=RED,    linewidth=2.5, label='Sixes',
             linestyle='--', zorder=3)
-    ax.fill_between(bps['season'], bps['is_four'], alpha=0.06, color=ACCENT)
-    ax.fill_between(bps['season'], bps['is_six'],  alpha=0.06, color=ACCENT2)
-    ax.set_title('Fours and Sixes Per Season', color='#c0c0d0', fontsize=11, pad=12)
+    ax.fill_between(bps['season'], bps['is_four'], alpha=0.08, color=ACCENT)
+    ax.fill_between(bps['season'], bps['is_six'],  alpha=0.08, color=RED)
+    ax.set_title('Fours and Sixes Per Season', color='#e2e8f0', fontsize=13, pad=14)
     ax.set_xlabel('Season')
     ax.set_ylabel('Count')
-    ax.legend(facecolor=CARD, edgecolor=LINE, labelcolor='#c0c0d0', fontsize=9)
+    ax.legend(facecolor=CARD, edgecolor=LINE, labelcolor='#e2e8f0', fontsize=11)
     ax.xaxis.set_major_locator(ticker.MaxNLocator(integer=True))
     plt.xticks(rotation=45, ha='right')
     plt.tight_layout()
@@ -966,17 +958,18 @@ with tab3:
         tw_bowl.columns = ['bowler', 'wickets']
         tw_bowl = tw_bowl.sort_values('wickets', ascending=True).tail(15)
 
-        fig, ax = base_fig(6, 6)
+        fig, ax = base_fig(6, 6.5)
+        # Purple for wicket takers — distinct from blue/red used elsewhere
         ax.barh(tw_bowl['bowler'], tw_bowl['wickets'],
-                color=RED, alpha=0.85, height=0.6, zorder=3)
+                color=PURPLE, alpha=0.9, height=0.65, zorder=3)
         for bar in ax.patches:
             ax.text(
                 bar.get_width() + 1,
                 bar.get_y() + bar.get_height() / 2,
                 str(int(bar.get_width())),
-                va='center', color='#8a8a9a', fontsize=7
+                va='center', color='#f0e6d3', fontsize=10, fontweight='600'
             )
-        ax.set_title('Top 15 Wicket Takers', color='#c0c0d0', fontsize=11, pad=12)
+        ax.set_title('Top 15 Wicket Takers', color='#e2e8f0', fontsize=13, pad=14)
         ax.set_xlabel('Wickets')
         plt.tight_layout()
         st.pyplot(fig)
@@ -988,20 +981,31 @@ with tab3:
         dis.columns = ['kind', 'count']
         dis = dis[dis['kind'] != 'None'].sort_values('count', ascending=True)
 
-        pal = [ACCENT, ACCENT2, RED, GREEN, '#8b5cf6', '#f97316', '#14b8a6', '#ec4899', '#eab308']
-        colors_used = pal[:len(dis)]
+        # Maximally distinct palette — each bar a different hue
+        distinct_pal = [
+            '#3b82f6',  # blue
+            '#ef4444',  # red
+            '#10b981',  # green
+            '#f59e0b',  # amber
+            '#a855f7',  # violet
+            '#f97316',  # orange
+            '#06b6d4',  # cyan
+            '#ec4899',  # pink
+            '#eab308',  # yellow
+        ]
+        colors_used = distinct_pal[:len(dis)]
 
-        fig, ax = base_fig(6, 6)
+        fig, ax = base_fig(6, 6.5)
         ax.barh(dis['kind'], dis['count'],
-                color=colors_used, alpha=0.85, height=0.6, zorder=3)
+                color=colors_used, alpha=0.9, height=0.65, zorder=3)
         for bar in ax.patches:
             ax.text(
-                bar.get_width() + 5,
+                bar.get_width() + 8,
                 bar.get_y() + bar.get_height() / 2,
                 f'{int(bar.get_width()):,}',
-                va='center', color='#8a8a9a', fontsize=7
+                va='center', color='#f0e6d3', fontsize=10, fontweight='600'
             )
-        ax.set_title('Dismissal Breakdown', color='#c0c0d0', fontsize=11, pad=12)
+        ax.set_title('Dismissal Breakdown', color='#e2e8f0', fontsize=13, pad=14)
         ax.set_xlabel('Count')
         plt.tight_layout()
         st.pyplot(fig)
@@ -1021,18 +1025,18 @@ with tab3:
     be['economy'] = (be['runs'] / be['overs']).round(2)
     be = be[be['balls'] >= 300].sort_values('economy').head(12)
 
-    fig, ax = base_fig(10, 5)
+    fig, ax = base_fig(10, 5.5)
     ax.barh(be['bowler'][::-1], be['economy'][::-1],
-            color=GREEN, alpha=0.85, height=0.6, zorder=3)
+            color=GREEN, alpha=0.9, height=0.65, zorder=3)
     for bar in ax.patches:
         ax.text(
-            bar.get_width() + 0.05,
+            bar.get_width() + 0.06,
             bar.get_y() + bar.get_height() / 2,
             f'{bar.get_width():.2f}',
-            va='center', color='#8a8a9a', fontsize=8
+            va='center', color='#f0e6d3', fontsize=10, fontweight='600'
         )
     ax.set_title('Most Economical Bowlers (min 300 legal balls)',
-                 color='#c0c0d0', fontsize=11, pad=12)
+                 color='#e2e8f0', fontsize=13, pad=14)
     ax.set_xlabel('Economy Rate')
     plt.tight_layout()
     st.pyplot(fig)
@@ -1064,32 +1068,33 @@ with tab4:
 
     if 'chase' in cdp.columns and 'defend' in cdp.columns:
         cdp['pct'] = (cdp['chase'] / (cdp['chase'] + cdp['defend']) * 100).round(1)
-        fig, ax = base_fig(10, 4)
+        fig, ax = base_fig(10, 4.5)
         ax.plot(cdp.index, cdp['pct'],
-                marker='o', markersize=5, color=ACCENT, linewidth=2.2, zorder=3)
-        ax.axhline(50, color=MUTED, linewidth=1, linestyle='--', label='50% line')
+                marker='o', markersize=6, color=ACCENT, linewidth=2.5, zorder=3)
+        ax.axhline(50, color='#94a3b8', linewidth=1.2, linestyle='--', label='50% line')
+        # Blue above 50 = chasing wins more; Red below = defending wins more
         ax.fill_between(cdp.index, cdp['pct'], 50,
-                        where=cdp['pct'] >= 50, alpha=0.12, color=ACCENT,  label='Chasing favoured')
+                        where=cdp['pct'] >= 50, alpha=0.15, color=ACCENT, label='Chasing favoured')
         ax.fill_between(cdp.index, cdp['pct'], 50,
-                        where=cdp['pct'] < 50,  alpha=0.12, color=RED,    label='Defending favoured')
-        ax.set_title('Chasing Win % Per Season', color='#c0c0d0', fontsize=11, pad=12)
+                        where=cdp['pct'] < 50,  alpha=0.15, color=RED,   label='Defending favoured')
+        ax.set_title('Chasing Win % Per Season', color='#e2e8f0', fontsize=13, pad=14)
         ax.set_xlabel('Season')
         ax.set_ylabel('Chase Win %')
-        ax.legend(facecolor=CARD, edgecolor=LINE, labelcolor='#c0c0d0', fontsize=9)
+        ax.legend(facecolor=CARD, edgecolor=LINE, labelcolor='#e2e8f0', fontsize=11)
         ax.xaxis.set_major_locator(ticker.MaxNLocator(integer=True))
         plt.xticks(rotation=45, ha='right')
         plt.tight_layout()
         st.pyplot(fig)
         plt.close()
 
-    # ── Head to Head ──
+    # ── Head to Head — active franchises only ──
     st.markdown('<div class="sec-title">Head to Head</div>', unsafe_allow_html=True)
-    all_teams = sorted(matches['team1'].unique())
+    active_list = sorted(ACTIVE_TEAMS)
     col1, col2 = st.columns(2)
     with col1:
-        ht1 = st.selectbox('Team A', all_teams, key='ht1')
+        ht1 = st.selectbox('Team A', active_list, key='ht1')
     with col2:
-        ht2 = st.selectbox('Team B', [t for t in all_teams if t != ht1], key='ht2')
+        ht2 = st.selectbox('Team B', [t for t in active_list if t != ht1], key='ht2')
 
     h2h = matches[
         ((matches['team1'] == ht1) & (matches['team2'] == ht2)) |
@@ -1105,22 +1110,25 @@ with tab4:
     with c2:
         st.markdown(f'<div class="h2h-card"><div class="h2h-num" style="color:#3b82f6">{w1}</div><div class="h2h-lbl">{ht1}</div></div>', unsafe_allow_html=True)
     with c3:
-        st.markdown(f'<div class="h2h-card"><div class="h2h-num" style="color:#06b6d4">{w2}</div><div class="h2h-lbl">{ht2}</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="h2h-card"><div class="h2h-num" style="color:#f59e0b">{w2}</div><div class="h2h-lbl">{ht2}</div></div>', unsafe_allow_html=True)
 
     if tot > 0:
         pct1 = w1 / tot * 100
         pct2 = w2 / tot * 100
-        fig, ax = base_fig(10, 2.5)
+        fig, ax = base_fig(10, 2.8)
         ax.set_xlim(0, 100)
         ax.set_ylim(0, 1)
-        ax.barh(0.5, pct1, height=0.4, color=ACCENT,  alpha=0.9, left=0)
-        ax.barh(0.5, pct2, height=0.4, color=ACCENT2, alpha=0.9, left=pct1)
+        # Blue vs Amber — primary accent pair
+        ax.barh(0.5, pct1, height=0.45, color=ACCENT,  alpha=0.92, left=0)
+        ax.barh(0.5, pct2, height=0.45, color=ACCENT2, alpha=0.92, left=pct1)
         if pct1 > 10:
-            ax.text(pct1 / 2,       0.5, f'{ht1}\n{pct1:.1f}%',
-                    ha='center', va='center', color='#fff', fontsize=8, fontweight='600')
+            ax.text(pct1 / 2, 0.5,
+                    f'{ht1}\n{pct1:.1f}%',
+                    ha='center', va='center', color='#fff', fontsize=10, fontweight='700')
         if pct2 > 10:
-            ax.text(pct1 + pct2/2,  0.5, f'{ht2}\n{pct2:.1f}%',
-                    ha='center', va='center', color='#fff', fontsize=8, fontweight='600')
+            ax.text(pct1 + pct2 / 2, 0.5,
+                    f'{ht2}\n{pct2:.1f}%',
+                    ha='center', va='center', color='#fff', fontsize=10, fontweight='700')
         ax.axis('off')
         ax.set_facecolor(CARD)
         fig.patch.set_facecolor(BG)
@@ -1137,17 +1145,17 @@ with tab4:
     pom.columns = ['player', 'awards']
     pom = pom.sort_values('awards', ascending=True)
 
-    fig, ax = base_fig(10, 5.5)
+    fig, ax = base_fig(10, 6)
     bars = ax.barh(pom['player'], pom['awards'],
-                   color=ACCENT, alpha=0.85, height=0.6, zorder=3)
+                   color=ORANGE, alpha=0.9, height=0.65, zorder=3)
     for bar in bars:
         ax.text(
-            bar.get_width() + 0.1,
+            bar.get_width() + 0.12,
             bar.get_y() + bar.get_height() / 2,
             str(int(bar.get_width())),
-            va='center', color='#8a8a9a', fontsize=8
+            va='center', color='#f0e6d3', fontsize=11, fontweight='600'
         )
-    ax.set_title('Most Player of the Match Awards', color='#c0c0d0', fontsize=11, pad=12)
+    ax.set_title('Most Player of the Match Awards', color='#e2e8f0', fontsize=13, pad=14)
     ax.set_xlabel('Awards')
     plt.tight_layout()
     st.pyplot(fig)
@@ -1156,7 +1164,7 @@ with tab4:
 
 # ─── Footer ─────────────────────────────────────────────────────
 st.markdown("""
-<div style="text-align:center;color:#1e293b;font-size:0.75rem;padding:3rem 0 1.5rem;letter-spacing:1px;">
+<div style="text-align:center;color:#1e293b;font-size:0.78rem;padding:3rem 0 1.5rem;letter-spacing:1px;">
     IPL Intelligence &nbsp;·&nbsp; Data: 2008–2024 &nbsp;·&nbsp; Built with Python & Streamlit
 </div>
 """, unsafe_allow_html=True)
