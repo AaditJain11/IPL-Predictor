@@ -32,7 +32,7 @@ LINE    = '#1e293b'
 TOSS_BAT   = '#f59e0b'
 TOSS_FIELD = '#a855f7'
 
-# ─── Current IPL franchises only — no defunct teams in H2H ────
+# ─── Current IPL franchises only — no defunct teams in H2H or Predict ────
 ACTIVE_TEAMS = {
     'Chennai Super Kings',
     'Delhi Capitals',
@@ -439,6 +439,12 @@ def train_model(_matches):
     return m, encoders
 
 
+# ─── Font size clamped to segment width — stops tiny text on mobile ──
+def clamp_font(pct, lo=9, hi=14):
+    """Scale font between lo and hi based on the segment's % width."""
+    return max(lo, min(hi, lo + (hi - lo) * pct / 100))
+
+
 # ─── Base figure — 12pt labels, bright text, readable on mobile ──
 def base_fig(w=10, h=4.5):
     fig, ax = plt.subplots(figsize=(w, h))
@@ -525,7 +531,9 @@ with tab5:
     </div>
     """, unsafe_allow_html=True)
 
-    teams_list  = sorted(encoders['team1'].classes_)
+    # ── Filter to active franchises only ──────────────────────
+    all_encoded_teams = list(encoders['team1'].classes_)
+    teams_list  = sorted([t for t in all_encoded_teams if t in ACTIVE_TEAMS])
     cities_list = sorted(encoders['city'].classes_)
 
     col1, col2, col3 = st.columns([1, 1, 1])
@@ -1115,20 +1123,37 @@ with tab4:
     if tot > 0:
         pct1 = w1 / tot * 100
         pct2 = w2 / tot * 100
-        fig, ax = base_fig(10, 2.8)
+
+        # ── H2H bar: taller figure + larger fonts for mobile readability ──
+        fig, ax = base_fig(10, 3.8)
         ax.set_xlim(0, 100)
         ax.set_ylim(0, 1)
         # Blue vs Amber — primary accent pair
-        ax.barh(0.5, pct1, height=0.45, color=ACCENT,  alpha=0.92, left=0)
-        ax.barh(0.5, pct2, height=0.45, color=ACCENT2, alpha=0.92, left=pct1)
-        if pct1 > 10:
-            ax.text(pct1 / 2, 0.5,
-                    f'{ht1}\n{pct1:.1f}%',
-                    ha='center', va='center', color='#fff', fontsize=10, fontweight='700')
-        if pct2 > 10:
-            ax.text(pct1 + pct2 / 2, 0.5,
-                    f'{ht2}\n{pct2:.1f}%',
-                    ha='center', va='center', color='#fff', fontsize=10, fontweight='700')
+        ax.barh(0.5, pct1, height=0.55, color=ACCENT,  alpha=0.92, left=0)
+        ax.barh(0.5, pct2, height=0.55, color=ACCENT2, alpha=0.92, left=pct1)
+
+        # Team 1 label — only draw if segment is wide enough
+        if pct1 > 8:
+            ax.text(
+                pct1 / 2, 0.5,
+                f'{ht1}\n{pct1:.1f}%',
+                ha='center', va='center',
+                color='#fff',
+                fontsize=clamp_font(pct1, lo=9, hi=14),
+                fontweight='700',
+                wrap=True
+            )
+        # Team 2 label
+        if pct2 > 8:
+            ax.text(
+                pct1 + pct2 / 2, 0.5,
+                f'{ht2}\n{pct2:.1f}%',
+                ha='center', va='center',
+                color='#fff',
+                fontsize=clamp_font(pct2, lo=9, hi=14),
+                fontweight='700',
+                wrap=True
+            )
         ax.axis('off')
         ax.set_facecolor(CARD)
         fig.patch.set_facecolor(BG)
