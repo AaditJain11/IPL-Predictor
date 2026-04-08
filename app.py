@@ -624,7 +624,8 @@ with tab5:
     </div>
     """, unsafe_allow_html=True)
 
-    teams_list  = sorted(encoders['team1'].classes_)
+    # Only show active IPL franchises — no defunct teams
+    teams_list  = sorted([t for t in encoders['team1'].classes_ if t in ACTIVE_TEAMS])
     cities_list = sorted(encoders['city'].classes_)
 
     col1, col2, col3 = st.columns([1, 1, 1])
@@ -1267,193 +1268,193 @@ with tab4:
 with tab6:
     st.markdown("""
     <div class="par-hero">
-        <div class="hero-tag" style="color:#10b981">Venue Intelligence · First Innings</div>
+        <div class="hero-tag" style="color:#10b981">Based on IPL Data 2008 to 2024</div>
         <div class="par-hero-title">Par Score Calculator</div>
-        <div class="par-hero-sub">Select a venue to see what a winning first innings score looks like there</div>
+        <div class="par-hero-sub">Pick a ground and instantly see what score is good enough to win there</div>
     </div>
     """, unsafe_allow_html=True)
 
-    # ── Build first innings scores dataset ──
-    # Get total runs scored per match per innings
+    # Build first innings dataset
     inn_runs = (
         deliveries.groupby(['match_id', 'inning'])['total_runs']
         .sum().reset_index()
     )
     inn_runs.columns = ['match_id', 'inning', 'innings_runs']
-
-    # First innings only
     first_inn = inn_runs[inn_runs['inning'] == 1].copy()
-
-    # Merge with match metadata
     first_inn = first_inn.merge(
         matches[['id', 'venue', 'city', 'winner', 'team1', 'team2', 'season']],
         left_on='match_id', right_on='id', how='left'
     )
     first_inn = first_inn[first_inn['winner'] != 'No Result'].dropna(subset=['venue'])
-
-    # Did the team batting first win?
     first_inn['bat_first_won'] = first_inn['winner'] == first_inn['team1']
 
-    # ── Venue selector ──
-    venue_counts = first_inn['venue'].value_counts()
-    # Only venues with enough data (min 10 matches)
-    valid_venues = sorted(venue_counts[venue_counts >= 10].index.tolist())
+    # Clean up duplicate/variant stadium names so each ground appears only once
+    venue_clean_map = {
+        'M Chinnaswamy Stadium':                               'M Chinnaswamy Stadium, Bengaluru',
+        'M. Chinnaswamy Stadium':                              'M Chinnaswamy Stadium, Bengaluru',
+        'M.Chinnaswamy Stadium':                               'M Chinnaswamy Stadium, Bengaluru',
+        'Wankhede Stadium':                                    'Wankhede Stadium, Mumbai',
+        'Eden Gardens':                                        'Eden Gardens, Kolkata',
+        'Feroz Shah Kotla':                                    'Arun Jaitley Stadium, Delhi',
+        'Feroz Shah Kotla Ground':                             'Arun Jaitley Stadium, Delhi',
+        'Arun Jaitley Stadium':                                'Arun Jaitley Stadium, Delhi',
+        'MA Chidambaram Stadium':                              'MA Chidambaram Stadium, Chennai',
+        'MA Chidambaram Stadium, Chepauk':                     'MA Chidambaram Stadium, Chennai',
+        'MA Chidambaram Stadium, Chepauk, Chennai':            'MA Chidambaram Stadium, Chennai',
+        'Rajiv Gandhi International Stadium':                  'Rajiv Gandhi Stadium, Hyderabad',
+        'Rajiv Gandhi International Stadium, Uppal':           'Rajiv Gandhi Stadium, Hyderabad',
+        'Punjab Cricket Association Stadium':                  'PCA Stadium, Mohali',
+        'Punjab Cricket Association IS Bindra Stadium':        'PCA Stadium, Mohali',
+        'Punjab Cricket Association IS Bindra Stadium, Mohali':'PCA Stadium, Mohali',
+        'Sawai Mansingh Stadium':                              'Sawai Mansingh Stadium, Jaipur',
+        'Dr DY Patil Sports Academy':                          'DY Patil Stadium, Mumbai',
+        'Dr DY Patil Sports Academy, Mumbai':                  'DY Patil Stadium, Mumbai',
+        'DY Patil Stadium':                                    'DY Patil Stadium, Mumbai',
+        'Narendra Modi Stadium':                               'Narendra Modi Stadium, Ahmedabad',
+        'Sardar Patel Stadium, Motera':                        'Narendra Modi Stadium, Ahmedabad',
+        'Shaheed Veer Narayan Singh International Stadium':    'SVNSI Stadium, Raipur',
+        'JSCA International Stadium Complex':                  'JSCA Stadium, Ranchi',
+        'Holkar Cricket Stadium':                              'Holkar Stadium, Indore',
+        'Maharashtra Cricket Association Stadium':             'MCA Stadium, Pune',
+        'Subrata Roy Sahara Stadium':                          'MCA Stadium, Pune',
+        'Brabourne Stadium':                                   'Brabourne Stadium, Mumbai',
+        'Green Park':                                          'Green Park, Kanpur',
+        'Himachal Pradesh Cricket Association Stadium':        'HPCA Stadium, Dharamsala',
+        'Himachal Pradesh Cricket Association Stadium, Dharamsala': 'HPCA Stadium, Dharamsala',
+        'Barsapara Cricket Stadium':                           'Barsapara Stadium, Guwahati',
+        'Dr. Y.S. Rajasekhara Reddy ACA-VDCA Cricket Stadium':'ACA-VDCA Stadium, Visakhapatnam',
+        'Vidarbha Cricket Association Stadium':                'VCA Stadium, Nagpur',
+        'Vidarbha Cricket Association Stadium, Jamtha':        'VCA Stadium, Nagpur',
+        'Bharat Ratna Shri Atal Bihari Vajpayee Ekana Cricket Stadium': 'Ekana Stadium, Lucknow',
+        'Ekana Cricket Stadium':                               'Ekana Stadium, Lucknow',
+    }
+    first_inn['venue'] = first_inn['venue'].replace(venue_clean_map)
 
-    selected_venue = st.selectbox('🏟️  Select Venue', valid_venues)
-
-    venue_data = first_inn[first_inn['venue'] == selected_venue].copy()
+    venue_counts  = first_inn['venue'].value_counts()
+    valid_venues  = sorted(venue_counts[venue_counts >= 10].index.tolist())
+    selected_venue = st.selectbox('Select a Ground', valid_venues)
+    venue_data     = first_inn[first_inn['venue'] == selected_venue].copy()
 
     if len(venue_data) < 5:
-        st.warning("Not enough data for this venue.")
+        st.warning('Not enough matches recorded at this ground yet.')
     else:
-        # ── Summary stats ──
         avg_score      = venue_data['innings_runs'].mean()
         median_score   = venue_data['innings_runs'].median()
         highest_score  = venue_data['innings_runs'].max()
-        lowest_score   = venue_data['innings_runs'].min()
         bat_first_wins = venue_data['bat_first_won'].mean() * 100
         total_matches  = len(venue_data)
 
-        # Par score = score at which win rate crosses 50%
-        # Use a rolling approach: sort by runs, find threshold
-        venue_sorted = venue_data.sort_values('innings_runs')
-        par_score    = None
+        # Par score: lowest score where batting first wins at least half the time
+        par_score = None
         for score_thresh in range(100, 260, 5):
             band = venue_data[venue_data['innings_runs'] >= score_thresh]
-            if len(band) >= 3:
-                wr = band['bat_first_won'].mean()
-                if wr >= 0.50:
-                    par_score = score_thresh
-                    break
+            if len(band) >= 3 and band['bat_first_won'].mean() >= 0.50:
+                par_score = score_thresh
+                break
         if par_score is None:
             par_score = int(avg_score)
 
-        st.markdown(f"""
+        # Summary cards
+        st.markdown(f'''
         <div class="par-stat-row">
             <div class="par-stat green">
                 <div class="par-stat-num">{par_score}</div>
-                <div class="par-stat-lbl">Par Score</div>
+                <div class="par-stat-lbl">Winning Score</div>
             </div>
             <div class="par-stat blue">
                 <div class="par-stat-num">{avg_score:.0f}</div>
-                <div class="par-stat-lbl">Avg 1st Innings</div>
+                <div class="par-stat-lbl">Typical Score</div>
             </div>
             <div class="par-stat amber">
                 <div class="par-stat-num">{median_score:.0f}</div>
-                <div class="par-stat-lbl">Median Score</div>
+                <div class="par-stat-lbl">Middle Score</div>
             </div>
             <div class="par-stat red">
                 <div class="par-stat-num">{highest_score}</div>
-                <div class="par-stat-lbl">Highest Score</div>
+                <div class="par-stat-lbl">Highest Ever</div>
             </div>
             <div class="par-stat purple">
                 <div class="par-stat-num">{bat_first_wins:.0f}%</div>
-                <div class="par-stat-lbl">Bat First Win %</div>
+                <div class="par-stat-lbl">Bat First Wins</div>
             </div>
         </div>
-        """, unsafe_allow_html=True)
+        ''', unsafe_allow_html=True)
 
-        # ── Two columns: histogram + win rate by score band ──
+        # Plain English verdict
+        if bat_first_wins < 50:
+            verdict = (f'Teams chasing tend to win here — only {bat_first_wins:.0f}% of teams batting first win at this ground. '
+                       f'Still, if you bat first and score {par_score} or more, you have a real chance of defending it.')
+        else:
+            verdict = (f'Batting first is an advantage here — {bat_first_wins:.0f}% of teams that bat first go on to win. '
+                       f'Score {par_score} or more and you are in a strong position.')
+        st.info(f'📌  {verdict}')
+
         col1, col2 = st.columns(2)
 
         with col1:
-            st.markdown('<div class="sec-title">Score Distribution</div>', unsafe_allow_html=True)
+            st.markdown('<div class="sec-title">How Many Runs Teams Usually Score Here</div>', unsafe_allow_html=True)
+            st.caption('Green = above the winning mark. Red = below it. Numbers on bars show how many matches landed in that range.')
 
             fig, ax = base_fig(6, 5)
             scores = venue_data['innings_runs'].values
-            bins   = np.arange(
-                (scores.min() // 10) * 10,
-                (scores.max() // 10) * 10 + 21, 10
-            )
-
-            # Color each bar: green if >= par, red if below par
-            n, bin_edges, patches_hist = ax.hist(
-                scores, bins=bins, edgecolor=BG, linewidth=0.8, zorder=3
-            )
+            bins   = np.arange((scores.min() // 10) * 10, (scores.max() // 10) * 10 + 21, 10)
+            n, bin_edges, patches_hist = ax.hist(scores, bins=bins, edgecolor=BG, linewidth=0.8, zorder=3)
             for patch, left_edge in zip(patches_hist, bin_edges[:-1]):
                 patch.set_facecolor(GREEN if left_edge >= par_score else RED)
-                patch.set_alpha(0.85)
-
-            # Par score vertical line
-            ax.axvline(par_score, color='#f0e6d3', linewidth=2,
-                       linestyle='--', zorder=4, label=f'Par Score: {par_score}')
-            # Average line
-            ax.axvline(avg_score, color=ACCENT2, linewidth=1.5,
-                       linestyle=':', zorder=4, label=f'Average: {avg_score:.0f}')
-
-            ax.set_title(f'First Innings Score Distribution\n{selected_venue}',
-                         color='#e2e8f0', fontsize=12, pad=12)
-            ax.set_xlabel('Runs Scored')
-            ax.set_ylabel('Number of Matches')
-            ax.legend(facecolor=CARD, edgecolor=LINE, labelcolor='#e2e8f0', fontsize=10)
-            # Add count labels on bars
+                patch.set_alpha(0.88)
+            ax.axvline(par_score, color='#f0e6d3', linewidth=2.2, linestyle='--', zorder=4,
+                       label=f'Winning mark: {par_score}')
+            ax.axvline(avg_score, color=ACCENT2, linewidth=1.5, linestyle=':', zorder=4,
+                       label=f'Typical score: {avg_score:.0f}')
             for patch in patches_hist:
                 h = patch.get_height()
                 if h > 0:
-                    ax.text(
-                        patch.get_x() + patch.get_width() / 2,
-                        h + 0.15,
-                        str(int(h)),
-                        ha='center', color='#f0e6d3', fontsize=9, fontweight='600'
-                    )
+                    ax.text(patch.get_x() + patch.get_width() / 2, h + 0.15,
+                            str(int(h)), ha='center', color='#f0e6d3', fontsize=9, fontweight='600')
+            ax.set_title(f'First Innings Scores at\n{selected_venue}', color='#e2e8f0', fontsize=12, pad=12)
+            ax.set_xlabel('Runs Scored in First Innings')
+            ax.set_ylabel('Number of Matches')
+            ax.legend(facecolor=CARD, edgecolor=LINE, labelcolor='#e2e8f0', fontsize=10)
             plt.tight_layout()
             st.pyplot(fig)
             plt.close()
 
         with col2:
-            st.markdown('<div class="sec-title">Win Rate by Score Band</div>', unsafe_allow_html=True)
+            st.markdown('<div class="sec-title">Chance of Winning by Score Range</div>', unsafe_allow_html=True)
+            st.caption('How often did the team batting first win when they scored in each range? e.g. 70 means 7 wins out of every 10 matches.')
 
-            # Define score bands
-            band_edges = list(range(100, 230, 20)) + [260]
+            band_edges  = list(range(100, 230, 20)) + [260]
             band_labels, band_wins, band_counts = [], [], []
-
             for i in range(len(band_edges) - 1):
                 lo, hi = band_edges[i], band_edges[i + 1]
-                band   = venue_data[
-                    (venue_data['innings_runs'] >= lo) &
-                    (venue_data['innings_runs'] < hi)
-                ]
+                band   = venue_data[(venue_data['innings_runs'] >= lo) & (venue_data['innings_runs'] < hi)]
                 if len(band) >= 2:
-                    band_labels.append(f'{lo}–{hi - 1}')
+                    band_labels.append(f'{lo}-{hi-1}')
                     band_wins.append(band['bat_first_won'].mean() * 100)
                     band_counts.append(len(band))
 
             if band_labels:
                 fig, ax = base_fig(6, 5)
-                # Color bars: green >= 50%, red < 50%
                 bar_cols = [GREEN if w >= 50 else RED for w in band_wins]
-                bars = ax.bar(band_labels, band_wins,
-                              color=bar_cols, alpha=0.9, width=0.6, zorder=3)
-
-                ax.axhline(50, color='#94a3b8', linewidth=1.2,
-                           linestyle='--', zorder=4, label='50% line')
-
+                bars = ax.bar(band_labels, band_wins, color=bar_cols, alpha=0.9, width=0.6, zorder=3)
+                # Subtle 50% reference line — no legend entry, just a faint guide
+                ax.axhline(50, color='#475569', linewidth=1, linestyle='-', zorder=2, alpha=0.5)
+                ax.text(len(band_labels) - 0.5, 52, '50%', color='#64748b', fontsize=9, ha='right')
                 for bar, cnt, wr in zip(bars, band_counts, band_wins):
-                    # Win % on top of bar
-                    ax.text(
-                        bar.get_x() + bar.get_width() / 2,
-                        bar.get_height() + 1.5,
-                        f'{wr:.0f}%',
-                        ha='center', color='#f0e6d3', fontsize=12, fontweight='700'
-                    )
-                    # Match count inside bar
-                    if bar.get_height() > 10:
-                        ax.text(
-                            bar.get_x() + bar.get_width() / 2,
-                            bar.get_height() / 2,
-                            f'n={cnt}',
-                            ha='center', color='#ffffff', fontsize=9, fontweight='500'
-                        )
-
-                ax.set_title('Batting First Win % by Score Range',
+                    ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 1.5,
+                            f'{wr:.0f}%', ha='center', color='#f0e6d3', fontsize=12, fontweight='700')
+                    if bar.get_height() > 15:
+                        ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() / 2,
+                                f'{cnt} games', ha='center', color='#ffffff', fontsize=8)
+                ax.set_title('If you score this many runs,\nhow often do you win?',
                              color='#e2e8f0', fontsize=12, pad=12)
-                ax.set_xlabel('First Innings Score')
-                ax.set_ylabel('Win %')
-                ax.set_ylim(0, 115)
+                ax.set_xlabel('First Innings Runs')
+                ax.set_ylabel('Win % (out of 100 matches)')
+                ax.set_ylim(0, 125)
                 ax.tick_params(axis='x', labelsize=10, rotation=30)
                 patches_leg = [
-                    mpatches.Patch(color=GREEN, label='Win rate ≥ 50%'),
-                    mpatches.Patch(color=RED,   label='Win rate < 50%'),
+                    mpatches.Patch(color=GREEN, label='Wins more than half the time'),
+                    mpatches.Patch(color=RED,   label='Wins less than half the time'),
                 ]
                 ax.legend(handles=patches_leg, facecolor=CARD, edgecolor=LINE,
                           labelcolor='#e2e8f0', fontsize=10)
@@ -1461,9 +1462,10 @@ with tab6:
                 st.pyplot(fig)
                 plt.close()
 
-        # ── Season trend for this venue ──
-        st.markdown('<div class="sec-title">Average First Innings Score Over Seasons</div>',
+        # Season trend
+        st.markdown('<div class="sec-title">How Scores at This Ground Have Changed Over Time</div>',
                     unsafe_allow_html=True)
+        st.caption('Each dot is the average first innings score at this ground in that IPL season. Helps you see if the pitch has got easier or harder to bat on.')
 
         season_avg = (
             venue_data.groupby('season')['innings_runs']
@@ -1474,29 +1476,20 @@ with tab6:
 
         if len(season_avg) >= 2:
             fig, ax = base_fig(10, 4.5)
-            ax.fill_between(season_avg['season'], season_avg['avg'],
-                            alpha=0.12, color=GREEN)
-            ax.plot(season_avg['season'], season_avg['avg'],
-                    marker='o', markersize=7, color=GREEN,
-                    linewidth=2.5, zorder=3, label='Avg score')
-            # Par line
-            ax.axhline(par_score, color='#f0e6d3', linewidth=1.5,
-                       linestyle='--', zorder=4, label=f'Par score ({par_score})')
-            ax.axhline(avg_score, color=ACCENT2, linewidth=1.2,
-                       linestyle=':', zorder=4, label=f'All-time avg ({avg_score:.0f})')
-
-            # Annotate each point
+            ax.fill_between(season_avg['season'], season_avg['avg'], alpha=0.12, color=GREEN)
+            ax.plot(season_avg['season'], season_avg['avg'], marker='o', markersize=7,
+                    color=GREEN, linewidth=2.5, zorder=3, label='Average score that season')
+            ax.axhline(par_score, color='#f0e6d3', linewidth=1.5, linestyle='--', zorder=4,
+                       label=f'Winning mark ({par_score})')
+            ax.axhline(avg_score, color=ACCENT2, linewidth=1.2, linestyle=':', zorder=4,
+                       label=f'All-time average ({avg_score:.0f})')
             for _, row in season_avg.iterrows():
-                ax.text(
-                    row['season'], row['avg'] + 1.5,
-                    f"{row['avg']:.0f}",
-                    ha='center', color='#f0e6d3', fontsize=10, fontweight='600'
-                )
-
-            ax.set_title(f'First Innings Average Per Season — {selected_venue}',
+                ax.text(row['season'], row['avg'] + 1.5, f"{row['avg']:.0f}",
+                        ha='center', color='#f0e6d3', fontsize=10, fontweight='600')
+            ax.set_title(f'Average First Innings Score Per Season\n{selected_venue}',
                          color='#e2e8f0', fontsize=13, pad=14)
-            ax.set_xlabel('Season')
-            ax.set_ylabel('Average Runs')
+            ax.set_xlabel('IPL Season')
+            ax.set_ylabel('Average Runs Scored')
             ax.legend(facecolor=CARD, edgecolor=LINE, labelcolor='#e2e8f0', fontsize=11)
             ax.xaxis.set_major_locator(ticker.MaxNLocator(integer=True))
             plt.xticks(rotation=45, ha='right')
@@ -1504,39 +1497,36 @@ with tab6:
             st.pyplot(fig)
             plt.close()
         else:
-            st.info("Not enough seasons of data at this venue to show a trend.")
+            st.info('Not enough seasons of data at this ground to show a trend.')
 
-        # ── Win rate table (HTML) ──
-        st.markdown('<div class="sec-title">Score Band Breakdown</div>', unsafe_allow_html=True)
+        # Score band breakdown table
+        st.markdown('<div class="sec-title">Full Breakdown</div>', unsafe_allow_html=True)
+        st.caption('Each row shows a scoring range and how often the team batting first won from there. Green = usually wins, Amber = roughly 50/50, Red = usually loses.')
 
         all_bands = []
         for i in range(len(band_edges) - 1):
             lo, hi = band_edges[i], band_edges[i + 1]
-            band   = venue_data[
-                (venue_data['innings_runs'] >= lo) &
-                (venue_data['innings_runs'] < hi)
-            ]
+            band   = venue_data[(venue_data['innings_runs'] >= lo) & (venue_data['innings_runs'] < hi)]
             if len(band) >= 2:
                 wr     = band['bat_first_won'].mean() * 100
                 colour = '#10b981' if wr >= 60 else '#f59e0b' if wr >= 45 else '#ef4444'
-                bar_w  = int(wr)
-                all_bands.append((f'{lo}–{hi-1}', int(len(band)), wr, colour, bar_w))
+                verdict_txt = 'Usually wins' if wr >= 60 else 'Roughly 50/50' if wr >= 45 else 'Usually loses'
+                all_bands.append((f'{lo} to {hi-1}', int(len(band)), wr, colour, int(wr), verdict_txt))
 
         if all_bands:
             rows_html = ''
-            for label, cnt, wr, colour, bar_w in all_bands:
-                rows_html += f"""
+            for label, cnt, wr, colour, bar_w, verdict_txt in all_bands:
+                rows_html += f'''
                 <div class="win-band-row">
                     <span class="win-band-score">{label} runs</span>
                     <div class="win-band-bar-outer">
                         <div class="win-band-bar-inner" style="width:{bar_w}%;background:{colour}"></div>
                     </div>
                     <span class="win-band-pct" style="color:{colour}">{wr:.0f}%</span>
-                    <span style="color:#64748b;font-size:0.78rem;min-width:55px;text-align:right">{cnt} matches</span>
-                </div>"""
-
-            st.markdown(f'<div class="win-band-table">{rows_html}</div>',
-                        unsafe_allow_html=True)
+                    <span style="color:{colour};font-size:0.8rem;font-weight:600;min-width:110px;text-align:right">{verdict_txt}</span>
+                    <span style="color:#64748b;font-size:0.78rem;min-width:65px;text-align:right">{cnt} matches</span>
+                </div>'''
+            st.markdown(f'<div class="win-band-table">{rows_html}</div>', unsafe_allow_html=True)
 
 
 # ─── Footer ─────────────────────────────────────────────────────
