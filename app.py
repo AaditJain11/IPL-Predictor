@@ -1373,13 +1373,53 @@ with tab6:
         </div>
         ''', unsafe_allow_html=True)
 
-        if bat_first_wins < 50:
-            verdict = (f'Teams chasing tend to win here — only {bat_first_wins:.0f}% of teams batting first win at this ground. '
-                       f'Still, if you bat first and score {par_score} or more, you have a real chance of defending it.')
+        # ── Shared band definition ──
+        scores_arr = venue_data['innings_runs'].values
+        min_score  = max(80, int(scores_arr.min() // 20) * 20)
+        max_score  = int(scores_arr.max() // 20) * 20 + 20
+        band_starts = list(range(min_score, max_score, 20))
+
+        def build_bands(data, starts):
+            results = []
+            for i, lo in enumerate(starts):
+                hi = lo + 20
+                if i == len(starts) - 1:
+                    band = data[data['innings_runs'] >= lo]
+                    label = f'{lo}+'
+                else:
+                    band = data[(data['innings_runs'] >= lo) & (data['innings_runs'] < hi)]
+                    label = f'{lo}–{hi - 1}'
+                if len(band) >= 2:
+                    results.append((label, len(band), band['bat_first_won'].mean() * 100))
+            return results
+
+        bands = build_bands(venue_data, band_starts)
+
+        # ── Full Breakdown table ──
+        st.markdown('<div class="sec-title">Full Breakdown</div>', unsafe_allow_html=True)
+        st.caption('Each row shows a scoring range and how often the team batting first won from there. '
+                   'Green = usually wins (≥60%), Amber = roughly 50/50 (45–59%), Red = usually loses (<45%). '
+                   'Only ranges with at least 2 matches are shown.')
+
+        if bands:
+            rows_html = ''
+            for label, cnt, wr in bands:
+                colour = '#10b981' if wr >= 60 else '#f59e0b' if wr >= 45 else '#ef4444'
+                verdict_txt = 'Usually wins' if wr >= 60 else 'Roughly 50/50' if wr >= 45 else 'Usually loses'
+                bar_w = min(int(wr), 100)
+                rows_html += f'''
+                <div class="win-band-row">
+                    <span class="win-band-score">{label} runs</span>
+                    <div class="win-band-bar-outer">
+                        <div class="win-band-bar-inner" style="width:{bar_w}%;background:{colour}"></div>
+                    </div>
+                    <span class="win-band-pct" style="color:{colour}">{wr:.0f}%</span>
+                    <span style="color:{colour};font-size:0.8rem;font-weight:600;min-width:110px;text-align:right">{verdict_txt}</span>
+                    <span style="color:#64748b;font-size:0.78rem;min-width:65px;text-align:right">{cnt} matches</span>
+                </div>'''
+            st.markdown(f'<div class="win-band-table">{rows_html}</div>', unsafe_allow_html=True)
         else:
-            verdict = (f'Batting first is an advantage here — {bat_first_wins:.0f}% of teams that bat first go on to win. '
-                       f'Score {par_score} or more and you are in a strong position.')
-        st.info(f'📌  {verdict}')
+            st.info('Not enough data to build a breakdown for this ground.')
 # ─── Footer ─────────────────────────────────────────────────────
 st.markdown("""
 <div style="text-align:center;color:#1e293b;font-size:0.78rem;padding:3rem 0 1.5rem;letter-spacing:1px;">
