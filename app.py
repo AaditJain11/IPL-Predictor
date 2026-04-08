@@ -941,7 +941,6 @@ with tab2:
         sx.columns = ['batter', 'sixes']
         sx = sx.sort_values('sixes', ascending=True).tail(12)
         fig, ax = base_fig(6, 6.5)
-        # RED for sixes — clearly distinct from blue of run scorers
         ax.barh(sx['batter'], sx['sixes'],
                 color=RED, alpha=0.9, height=0.65, zorder=3)
         for bar in ax.patches:
@@ -982,7 +981,6 @@ with tab2:
     ph_rr['order'] = ph_rr['phase'].map(order_map)
     ph_rr = ph_rr.sort_values('order')
 
-    # Blue, Amber, Red — three distinct hues
     c_map = {
         'Powerplay\n(Overs 1–6)': ACCENT,
         'Middle\n(Overs 7–15)':   ACCENT2,
@@ -1022,7 +1020,6 @@ with tab2:
     bps = df_trend.groupby('season')[['is_four', 'is_six']].sum().reset_index()
 
     fig, ax = base_fig(10, 4.5)
-    # Blue for fours, Red for sixes — maximum contrast
     ax.plot(bps['season'], bps['is_four'],
             marker='o', markersize=6, color=ACCENT, linewidth=2.5, label='Fours', zorder=3)
     ax.plot(bps['season'], bps['is_six'],
@@ -1059,7 +1056,6 @@ with tab3:
         tw_bowl = tw_bowl.sort_values('wickets', ascending=True).tail(15)
 
         fig, ax = base_fig(6, 6.5)
-        # Purple for wicket takers — distinct from blue/red used elsewhere
         ax.barh(tw_bowl['bowler'], tw_bowl['wickets'],
                 color=PURPLE, alpha=0.9, height=0.65, zorder=3)
         for bar in ax.patches:
@@ -1081,17 +1077,9 @@ with tab3:
         dis.columns = ['kind', 'count']
         dis = dis[dis['kind'] != 'None'].sort_values('count', ascending=True)
 
-        # Maximally distinct palette — each bar a different hue
         distinct_pal = [
-            '#3b82f6',  # blue
-            '#ef4444',  # red
-            '#10b981',  # green
-            '#f59e0b',  # amber
-            '#a855f7',  # violet
-            '#f97316',  # orange
-            '#06b6d4',  # cyan
-            '#ec4899',  # pink
-            '#eab308',  # yellow
+            '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#a855f7',
+            '#f97316', '#06b6d4', '#ec4899', '#eab308',
         ]
         colors_used = distinct_pal[:len(dis)]
 
@@ -1172,7 +1160,6 @@ with tab4:
         ax.plot(cdp.index, cdp['pct'],
                 marker='o', markersize=6, color=ACCENT, linewidth=2.5, zorder=3)
         ax.axhline(50, color='#94a3b8', linewidth=1.2, linestyle='--', label='50% line')
-        # Blue above 50 = chasing wins more; Red below = defending wins more
         ax.fill_between(cdp.index, cdp['pct'], 50,
                         where=cdp['pct'] >= 50, alpha=0.15, color=ACCENT, label='Chasing favoured')
         ax.fill_between(cdp.index, cdp['pct'], 50,
@@ -1218,7 +1205,6 @@ with tab4:
         fig, ax = base_fig(10, 2.8)
         ax.set_xlim(0, 100)
         ax.set_ylim(0, 1)
-        # Blue vs Amber — primary accent pair
         ax.barh(0.5, pct1, height=0.45, color=ACCENT,  alpha=0.92, left=0)
         ax.barh(0.5, pct2, height=0.45, color=ACCENT2, alpha=0.92, left=pct1)
         if pct1 > 10:
@@ -1286,13 +1272,13 @@ with tab6:
         left_on='match_id', right_on='id', how='left'
     )
     first_inn = first_inn[first_inn['winner'] != 'No Result'].dropna(subset=['venue'])
+    # bat_first_won: team1 always bats first (matches dataset convention)
     first_inn['bat_first_won'] = first_inn['winner'] == first_inn['team1']
 
-    # Clean up duplicate/variant stadium names so each ground appears only once
     venue_clean_map = {
         'M Chinnaswamy Stadium':                               'M Chinnaswamy Stadium, Bengaluru',
         'M. Chinnaswamy Stadium':                              'M Chinnaswamy Stadium, Bengaluru',
-        'M.Chinnaswamy Stadium':                               'M Chinnaswamy Stadium, Bengaluru',
+        'M.Chinnaswamy Stadium':                              'M Chinnaswamy Stadium, Bengaluru',
         'Wankhede Stadium':                                    'Wankhede Stadium, Mumbai',
         'Eden Gardens':                                        'Eden Gardens, Kolkata',
         'Feroz Shah Kotla':                                    'Arun Jaitley Stadium, Delhi',
@@ -1344,13 +1330,24 @@ with tab6:
         bat_first_wins = venue_data['bat_first_won'].mean() * 100
         total_matches  = len(venue_data)
 
-        # Par score: lowest score where batting first wins at least half the time
+        # ── Par score: lowest 20-run band where batting first wins ≥50% ──
+        # Use consistent 20-run bands anchored at 100, matching chart/table below
         par_score = None
-        for score_thresh in range(100, 260, 5):
-            band = venue_data[venue_data['innings_runs'] >= score_thresh]
-            if len(band) >= 3 and band['bat_first_won'].mean() >= 0.50:
+        for score_thresh in range(100, 280, 20):
+            band = venue_data[
+                (venue_data['innings_runs'] >= score_thresh) &
+                (venue_data['innings_runs'] < score_thresh + 20)
+            ]
+            if len(band) >= 2 and band['bat_first_won'].mean() >= 0.50:
                 par_score = score_thresh
                 break
+        # Fallback: lowest score from which all higher bands also win ≥50%
+        if par_score is None:
+            for score_thresh in range(100, 280, 5):
+                band = venue_data[venue_data['innings_runs'] >= score_thresh]
+                if len(band) >= 3 and band['bat_first_won'].mean() >= 0.50:
+                    par_score = score_thresh
+                    break
         if par_score is None:
             par_score = int(avg_score)
 
@@ -1380,7 +1377,6 @@ with tab6:
         </div>
         ''', unsafe_allow_html=True)
 
-        # Plain English verdict
         if bat_first_wins < 50:
             verdict = (f'Teams chasing tend to win here — only {bat_first_wins:.0f}% of teams batting first win at this ground. '
                        f'Still, if you bat first and score {par_score} or more, you have a real chance of defending it.')
@@ -1389,6 +1385,34 @@ with tab6:
                        f'Score {par_score} or more and you are in a strong position.')
         st.info(f'📌  {verdict}')
 
+        # ── Shared band definition — used identically in chart AND table ──
+        # Uniform 20-run bands from 80 to 280, then a catch-all 280+ band
+        scores_arr = venue_data['innings_runs'].values
+        min_score  = max(80, int(scores_arr.min() // 20) * 20)
+        max_score  = int(scores_arr.max() // 20) * 20 + 20
+
+        # Build uniform band edges covering the full range of actual scores
+        band_starts = list(range(min_score, max_score, 20))
+
+        def build_bands(data, starts):
+            """Return list of (label, count, win_pct) for each 20-run band with ≥2 matches.
+            Last band is open-ended (start+)."""
+            results = []
+            for i, lo in enumerate(starts):
+                hi = lo + 20
+                if i == len(starts) - 1:
+                    # Open-ended final band
+                    band = data[data['innings_runs'] >= lo]
+                    label = f'{lo}+'
+                else:
+                    band = data[(data['innings_runs'] >= lo) & (data['innings_runs'] < hi)]
+                    label = f'{lo}–{hi - 1}'
+                if len(band) >= 2:
+                    results.append((label, len(band), band['bat_first_won'].mean() * 100))
+            return results
+
+        bands = build_bands(venue_data, band_starts)
+
         col1, col2 = st.columns(2)
 
         with col1:
@@ -1396,9 +1420,8 @@ with tab6:
             st.caption('Green = above the winning mark. Red = below it. Numbers on bars show how many matches landed in that range.')
 
             fig, ax = base_fig(6, 5)
-            scores = venue_data['innings_runs'].values
-            bins   = np.arange((scores.min() // 10) * 10, (scores.max() // 10) * 10 + 21, 10)
-            n, bin_edges, patches_hist = ax.hist(scores, bins=bins, edgecolor=BG, linewidth=0.8, zorder=3)
+            bins = np.arange(min_score, max_score + 20, 20)
+            n, bin_edges, patches_hist = ax.hist(scores_arr, bins=bins, edgecolor=BG, linewidth=0.8, zorder=3)
             for patch, left_edge in zip(patches_hist, bin_edges[:-1]):
                 patch.set_facecolor(GREEN if left_edge >= par_score else RED)
                 patch.set_alpha(0.88)
@@ -1421,37 +1444,30 @@ with tab6:
 
         with col2:
             st.markdown('<div class="sec-title">Chance of Winning by Score Range</div>', unsafe_allow_html=True)
-            st.caption('How often did the team batting first win when they scored in each range? e.g. 70 means 7 wins out of every 10 matches.')
+            st.caption('How often did the team batting first win when they scored in each range? e.g. 70 means 7 wins out of every 10 matches in that range.')
 
-            band_edges  = list(range(100, 230, 20)) + [260]
-            band_labels, band_wins, band_counts = [], [], []
-            for i in range(len(band_edges) - 1):
-                lo, hi = band_edges[i], band_edges[i + 1]
-                band   = venue_data[(venue_data['innings_runs'] >= lo) & (venue_data['innings_runs'] < hi)]
-                if len(band) >= 2:
-                    band_labels.append(f'{lo}-{hi-1}')
-                    band_wins.append(band['bat_first_won'].mean() * 100)
-                    band_counts.append(len(band))
+            if bands:
+                b_labels  = [b[0] for b in bands]
+                b_counts  = [b[1] for b in bands]
+                b_winpcts = [b[2] for b in bands]
 
-            if band_labels:
                 fig, ax = base_fig(6, 5)
-                bar_cols = [GREEN if w >= 50 else RED for w in band_wins]
-                bars = ax.bar(band_labels, band_wins, color=bar_cols, alpha=0.9, width=0.6, zorder=3)
-                # Subtle 50% reference line — no legend entry, just a faint guide
+                bar_cols = [GREEN if w >= 50 else RED for w in b_winpcts]
+                bars = ax.bar(b_labels, b_winpcts, color=bar_cols, alpha=0.9, width=0.6, zorder=3)
                 ax.axhline(50, color='#475569', linewidth=1, linestyle='-', zorder=2, alpha=0.5)
-                ax.text(len(band_labels) - 0.5, 52, '50%', color='#64748b', fontsize=9, ha='right')
-                for bar, cnt, wr in zip(bars, band_counts, band_wins):
+                ax.text(len(b_labels) - 0.5, 52, '50%', color='#64748b', fontsize=9, ha='right')
+                for bar, cnt, wr in zip(bars, b_counts, b_winpcts):
                     ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 1.5,
-                            f'{wr:.0f}%', ha='center', color='#f0e6d3', fontsize=12, fontweight='700')
+                            f'{wr:.0f}%', ha='center', color='#f0e6d3', fontsize=11, fontweight='700')
                     if bar.get_height() > 15:
                         ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() / 2,
-                                f'{cnt} games', ha='center', color='#ffffff', fontsize=8)
+                                f'{cnt}g', ha='center', color='#ffffff', fontsize=8)
                 ax.set_title('If you score this many runs,\nhow often do you win?',
                              color='#e2e8f0', fontsize=12, pad=12)
                 ax.set_xlabel('First Innings Runs')
                 ax.set_ylabel('Win % (out of 100 matches)')
                 ax.set_ylim(0, 125)
-                ax.tick_params(axis='x', labelsize=10, rotation=30)
+                ax.tick_params(axis='x', labelsize=9, rotation=40)
                 patches_leg = [
                     mpatches.Patch(color=GREEN, label='Wins more than half the time'),
                     mpatches.Patch(color=RED,   label='Wins less than half the time'),
@@ -1462,10 +1478,10 @@ with tab6:
                 st.pyplot(fig)
                 plt.close()
 
-        # Season trend
+        # ── Season trend ──
         st.markdown('<div class="sec-title">How Scores at This Ground Have Changed Over Time</div>',
                     unsafe_allow_html=True)
-        st.caption('Each dot is the average first innings score at this ground in that IPL season. Helps you see if the pitch has got easier or harder to bat on.')
+        st.caption('Each dot is the average first innings score at this ground in that IPL season.')
 
         season_avg = (
             venue_data.groupby('season')['innings_runs']
@@ -1499,23 +1515,19 @@ with tab6:
         else:
             st.info('Not enough seasons of data at this ground to show a trend.')
 
-        # Score band breakdown table
+        # ── Full Breakdown table — uses exact same bands as the chart ──
         st.markdown('<div class="sec-title">Full Breakdown</div>', unsafe_allow_html=True)
-        st.caption('Each row shows a scoring range and how often the team batting first won from there. Green = usually wins, Amber = roughly 50/50, Red = usually loses.')
+        st.caption('Each row shows a scoring range and how often the team batting first won from there. '
+                   'Green = usually wins (≥60%), Amber = roughly 50/50 (45–59%), Red = usually loses (<45%). '
+                   'Only ranges with at least 2 matches are shown.')
 
-        all_bands = []
-        for i in range(len(band_edges) - 1):
-            lo, hi = band_edges[i], band_edges[i + 1]
-            band   = venue_data[(venue_data['innings_runs'] >= lo) & (venue_data['innings_runs'] < hi)]
-            if len(band) >= 2:
-                wr     = band['bat_first_won'].mean() * 100
+        if bands:
+            rows_html = ''
+            for label, cnt, wr in bands:
                 colour = '#10b981' if wr >= 60 else '#f59e0b' if wr >= 45 else '#ef4444'
                 verdict_txt = 'Usually wins' if wr >= 60 else 'Roughly 50/50' if wr >= 45 else 'Usually loses'
-                all_bands.append((f'{lo} to {hi-1}', int(len(band)), wr, colour, int(wr), verdict_txt))
-
-        if all_bands:
-            rows_html = ''
-            for label, cnt, wr, colour, bar_w, verdict_txt in all_bands:
+                # bar_w is capped at 100 since wr is a percentage
+                bar_w = min(int(wr), 100)
                 rows_html += f'''
                 <div class="win-band-row">
                     <span class="win-band-score">{label} runs</span>
@@ -1527,6 +1539,8 @@ with tab6:
                     <span style="color:#64748b;font-size:0.78rem;min-width:65px;text-align:right">{cnt} matches</span>
                 </div>'''
             st.markdown(f'<div class="win-band-table">{rows_html}</div>', unsafe_allow_html=True)
+        else:
+            st.info('Not enough data to build a breakdown for this ground.')
 
 
 # ─── Footer ─────────────────────────────────────────────────────
