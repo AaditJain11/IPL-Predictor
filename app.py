@@ -708,16 +708,7 @@ with tab5:
                 </div>
                 """, unsafe_allow_html=True)
 
-                if h2h_total > 0:
-                    st.markdown("<br>", unsafe_allow_html=True)
-                    st.markdown('<div class="sec-title">Head-to-Head History</div>', unsafe_allow_html=True)
-                    c1, c2, c3 = st.columns(3)
-                    with c1:
-                        st.markdown(f'<div class="h2h-card"><div class="h2h-num">{h2h_total}</div><div class="h2h-lbl">Total Matches</div></div>', unsafe_allow_html=True)
-                    with c2:
-                        st.markdown(f'<div class="h2h-card"><div class="h2h-num" style="color:#3b82f6">{h2h_w1}</div><div class="h2h-lbl">{t1_sel}</div></div>', unsafe_allow_html=True)
-                    with c3:
-                        st.markdown(f'<div class="h2h-card"><div class="h2h-num" style="color:#f59e0b">{h2h_w2}</div><div class="h2h-lbl">{t2_sel}</div></div>', unsafe_allow_html=True)
+              
 
             except Exception as e:
                 st.error(f"Prediction error: {e}")
