@@ -608,7 +608,7 @@ st.markdown(f"""
 # TABS
 # ═══════════════════════════════════════════════════════════════
 tab5, tab1, tab2, tab3, tab4, tab6 = st.tabs([
-    "🎯 Predict", "📊 Match Analysis", "🏏 Batting", "🎳 Bowling", "🔍 Advanced", "🏟️ Par Score"
+    "🎯 Predict", "📊 Match Analysis", "🏏 Batting", "🎳 Bowling", "🔍 Advanced", "🏟️ Score Analysis"
 ])
 
 
